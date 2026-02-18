@@ -12,6 +12,12 @@ python -m venv .venv
 pip install -r .\requirements.txt
 
 
+ pruebas de integracion 
+
+  $env:BASE_URL="http://localhost:5000"
+  python -m pytest -q -m e2e
+  python -m pytest -q
+
 
 
 
@@ -29,7 +35,7 @@ pip install -r .\requirements.txt
 - [x] Seleccion de arquitectura y stack 
 - [x] base de datos 
 - [ ] login con autentificacion - brandon
-- [ ] main menu - menu principal (API)  - Miguel
+- [X] main menu - menu principal (API)  - Miguel
 - [ ] pantalla de inserccion de datos ( CRUD usuario ) - crud de usuarios - Carlos
 - 
 - 
