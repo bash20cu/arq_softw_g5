@@ -2,10 +2,22 @@
 
 Estructura base propuesta para un proyecto MVC con Python, MySQL y APIs REST.
 
+## git
+https://github.com/bash20cu/arq_softw_g5
+
+### branch 
+[] main intocable , solo para cambios estables ,
+[] dev rama developer , solo para hacer los joins estables
+[] dev/[devname] rama independiente para cada uno. 
+[] dev/qa parea pruebas necesarias con pytest.
+
+
+
+
 ## Stack
 
-- Python 3.x
-- Flask
+- Python 3.x 
+- Flask -> SSR
 - MySQL
 - SQLAlchemy
 
