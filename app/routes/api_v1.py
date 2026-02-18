@@ -3,6 +3,8 @@ from functools import wraps
 from flask import Blueprint, request, session
 from sqlalchemy.exc import IntegrityError
 
+from app.controllers.auth_controller import AuthController
+from app.controllers.menu_controller import MenuController
 from app.controllers.user_controller import UserController
 from app.database import db
 from app.views.user_view import created_user_response, error_response, users_response
@@ -56,11 +58,16 @@ def create_user():
         )
 
     try:
+        id_rol_value = int(id_rol)
+    except (TypeError, ValueError):
+        return error_response("id_rol debe ser numerico", 400)
+
+    try:
         user = UserController.create_user(
             cedula_persona=cedula_persona,
             username=username,
             password_hash=password_hash,
-            id_rol=int(id_rol),
+            id_rol=id_rol_value,
             activo=_to_bool(activo),
         )
     except IntegrityError:
@@ -68,6 +75,63 @@ def create_user():
         return error_response("cedula_persona o username ya existe / FK invalida", 409)
 
     return created_user_response(user.to_dict())
+
+
+@api_v1_bp.get("/usuario/<int:user_id>")
+@login_required
+def get_user(user_id: int):
+    user = UserController.get_user_by_id(user_id)
+    if user is None:
+        return error_response("usuario no encontrado", 404)
+    return user.to_dict(), 200
+
+
+@api_v1_bp.put("/usuario/<int:user_id>")
+@login_required
+def update_user(user_id: int):
+    user = UserController.get_user_by_id(user_id)
+    if user is None:
+        return error_response("usuario no encontrado", 404)
+
+    payload = request.get_json(silent=True) or {}
+    allowed_fields = {"cedula_persona", "username", "password_hash", "id_rol", "activo"}
+    update_fields = {k: v for k, v in payload.items() if k in allowed_fields}
+
+    if not update_fields:
+        return error_response("no hay campos validos para actualizar", 400)
+
+    if "id_rol" in update_fields:
+        try:
+            update_fields["id_rol"] = int(update_fields["id_rol"])
+        except (TypeError, ValueError):
+            return error_response("id_rol debe ser numerico", 400)
+
+    if "activo" in update_fields:
+        update_fields["activo"] = _to_bool(update_fields["activo"])
+
+    try:
+        updated_user = UserController.update_user(user, **update_fields)
+    except IntegrityError:
+        db.session.rollback()
+        return error_response("datos duplicados o FK invalida", 409)
+
+    return updated_user.to_dict(), 200
+
+
+@api_v1_bp.delete("/usuario/<int:user_id>")
+@login_required
+def delete_user(user_id: int):
+    user = UserController.get_user_by_id(user_id)
+    if user is None:
+        return error_response("usuario no encontrado", 404)
+
+    try:
+        UserController.delete_user(user)
+    except IntegrityError:
+        db.session.rollback()
+        return error_response("usuario en uso por otras tablas", 409)
+
+    return {"ok": True, "message": "usuario eliminado"}, 200
 
 
 @api_v1_bp.post("/auth/verificar")
@@ -79,15 +143,11 @@ def verify_user():
     if not username or not password:
         return error_response("username y password son obligatorios", 400)
 
-    user = UserController.verify_credentials(username=username, plain_password=password)
+    user = AuthController.verify_credentials(username=username, password=password)
     if user is None:
         return error_response("credenciales invalidas", 401)
 
-    session["user"] = {
-        "id_usuario": user.id_usuario,
-        "username": user.username,
-        "id_rol": user.id_rol,
-    }
+    session["user"] = AuthController.build_session_user(user)
 
     return {
         "ok": True,
@@ -108,40 +168,4 @@ def logout_user():
 @login_required
 def main_menu():
     user = session["user"]
-
-    return {
-        "empresa": "Envios G5",
-        "bienvenida": f"Bienvenido, {user['username']}",
-        "modulos": [
-            {
-                "id": "ordenes",
-                "nombre": "Ordenes de envio",
-                "descripcion": "Crear y dar seguimiento a ordenes activas.",
-                "ruta_front": "/principal/ordenes",
-            },
-            {
-                "id": "clientes",
-                "nombre": "Clientes",
-                "descripcion": "Gestion de clientes y datos de contacto.",
-                "ruta_front": "/principal/clientes",
-            },
-            {
-                "id": "campanias",
-                "nombre": "Campanias",
-                "descripcion": "Promociones y comunicacion comercial.",
-                "ruta_front": "/principal/campanias",
-            },
-            {
-                "id": "soporte",
-                "nombre": "Soporte",
-                "descripcion": "Casos y seguimiento postventa.",
-                "ruta_front": "/principal/soporte",
-            },
-        ],
-        "kpis": {
-            "ordenes_pendientes": 14,
-            "envios_en_ruta": 27,
-            "casos_soporte_abiertos": 5,
-        },
-        "user": user,
-    }, 200
+    return MenuController.get_main_menu_payload(user), 200

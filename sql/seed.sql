@@ -34,7 +34,8 @@ INSERT INTO Distrito (id_distrito, id_canton, nombre) VALUES
 INSERT INTO Persona (cedula, nombre, apellido, email, telefono, id_distrito) VALUES
   ('101110111', 'Miguel', 'Admin', 'miguel.admin@enviosg5.com', '88880001', 10101),
   ('202220222', 'Carlo', 'Vargas', 'carlo.vargas@enviosg5.com', '88880002', 10101),
-  ('303330333', 'Brandon', 'Solis', 'brandon.solis@enviosg5.com', '88880003', 10101);
+  ('303330333', 'Brandon', 'Solis', 'brandon.solis@enviosg5.com', '88880003', 10101),
+  ('404440444', 'Laura', 'Campos', 'laura.campos@enviosg5.com', '88880004', 10101);
 
 -- password_hash se deja en texto plano para pruebas de desarrollo
 -- usuario: miguel_admin / password: admin123

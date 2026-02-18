@@ -26,6 +26,33 @@ class UserController:
         return user
 
     @staticmethod
+    def get_user_by_id(user_id: int) -> User | None:
+        return User.query.filter_by(id_usuario=user_id).first()
+
+    @staticmethod
+    def update_user(user: User, **fields) -> User:
+        if "cedula_persona" in fields:
+            user.cedula_persona = fields["cedula_persona"]
+        if "username" in fields:
+            user.username = fields["username"]
+        if "password_hash" in fields:
+            user.password_hash = fields["password_hash"]
+        if "id_rol" in fields:
+            user.id_rol = fields["id_rol"]
+        if "activo" in fields:
+            user.activo = fields["activo"]
+
+        user.save()
+        return user
+
+    @staticmethod
+    def delete_user(user: User) -> None:
+        from app.database import db
+
+        db.session.delete(user)
+        db.session.commit()
+
+    @staticmethod
     def verify_credentials(username: str, plain_password: str) -> User | None:
         user = User.query.filter_by(username=username, activo=True).first()
         if user is None:
