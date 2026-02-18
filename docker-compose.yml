@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  mysql-db:
+    image: mysql:8.0
+    container_name: mysql_server
+    restart: always
+    environment:
+      # Configura la contraseña del usuario root
+      MYSQL_ROOT_PASSWORD: migue123!
+      # Crea una base de datos inicial automáticamente
+      MYSQL_DATABASE: sistema_ventas
+    ports:
+      # Mapeo de puertos: [Puerto en tu PC] : [Puerto dentro del contenedor]
+      - "3306:3306"
+    volumes:
+      # Para que tus datos no se borren al apagar el contenedor
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:
