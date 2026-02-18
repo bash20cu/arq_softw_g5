@@ -5,11 +5,56 @@ Estructura base propuesta para un proyecto MVC con Python, MySQL y APIs REST.
 ## git
 https://github.com/bash20cu/arq_softw_g5
 
+
+## commandos 
+python -m venv .venv
+.\.venv\Scripts\activate
+pip install -r .\requirements.txt
+
+
+
+
+
+
 ### branch 
-[] main intocable , solo para cambios estables ,
-[] dev rama developer , solo para hacer los joins estables
-[] dev/[devname] rama independiente para cada uno. 
-[] dev/qa parea pruebas necesarias con pytest.
+- [ ] main intocable , solo para cambios estables ,
+- [ ] dev rama developer , solo para hacer los joins estables
+- [ ] dev/[devname] - [ fecha] rama independiente para cada uno. 
+- [ ] dev/qa parea pruebas necesarias con pytest.
+
+
+
+## Tareas 2026-02-17
+
+- [x] Seleccion de arquitectura y stack 
+- [x] base de datos 
+- [ ] login con autentificacion - brandon
+- [ ] main menu - menu principal (API)  - Miguel
+- [ ] pantalla de inserccion de datos ( CRUD usuario ) - crud de usuarios - Carlos
+- 
+- 
+
+###  login con autentificacion - brandon 
+
+#### Endpoints API REST (ejemplo)
+
+    - `GET /api/v1/usuario` -> usuario y contraseña con hash  mock de api 
+    - `POST /api/v1/usuario` -> crea usuario.
+    
+
+
+### main menu - menu principal (API)  - Miguel
+
+el api, y la entrada completa de la app, con la estructura de carpetas
+
+
+### pantalla de inserccion de datos ( CRUD usuario ) - crud de usuarios - Carlos 
+
+- `GET /api/v1/usuario` -> lista usuarios.
+- `GET /api/v1/usuario/{id}` -> detalle de usuario.
+- `POST /api/v1/usuario` -> crea usuario.
+- `PUT /api/v1/usuario/{id}` -> actualiza usuario.
+- `DELETE /api/v1/usuario/{id}` -> elimina usuario.
 
 
 
