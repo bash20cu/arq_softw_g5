@@ -119,3 +119,25 @@ arq_softw_g5/
 ## Proximo paso
 
 Si esta estructura te parece bien, en el siguiente paso te genero todos los archivos con codigo inicial funcionando para esos endpoints.
+
+## Seed de prueba
+
+1. Ejecuta el esquema:
+`mysql -u root -p < sql/schema.sql`
+
+2. Ejecuta datos de prueba:
+`mysql -u root -p SistemaVentas < sql/seed.sql`
+
+Credenciales demo para `POST /api/v1/auth/verificar`:
+- `miguel_admin` / `admin123`
+- `carla_ventas` / `ventas123`
+- `brandon_soporte` / `soporte123`
+
+## Carga automatica al iniciar app
+
+Si quieres que se ejecute al levantar `python run.py`, en tu `.env`:
+
+- `AUTO_DB_SCHEMA_ON_START=true`
+- `AUTO_DB_SEED_ON_START=true`
+
+Nota: `schema.sql` hace `DROP DATABASE`, asi que reinicia datos en cada arranque.
