@@ -1,9 +1,8 @@
 from flask import request, redirect, url_for, flash
 from app.models.user import User, UserModel
 from app.views.user_view import UserView
+from werkzeug.security import check_password_hash
 
-
-# Clase que usan tus compañeros desde api_v1.py — no se toca
 class UserController:
     @staticmethod
     def list_users() -> list:
@@ -21,10 +20,44 @@ class UserController:
         user.save()
         return user
 
+    @staticmethod
+    def get_user_by_id(user_id: int):
+        return User.query.filter_by(id_usuario=user_id).first()
 
-# ------------------------------------------------------------------
-# Funciones del frontend (pantallas HTML) — usan UserModel con mock
-# ------------------------------------------------------------------
+    @staticmethod
+    def update_user(user: User, **fields) -> User:
+        if "cedula_persona" in fields:
+            user.cedula_persona = fields["cedula_persona"]
+        if "username" in fields:
+            user.username = fields["username"]
+        if "password_hash" in fields:
+            user.password_hash = fields["password_hash"]
+        if "id_rol" in fields:
+            user.id_rol = fields["id_rol"]
+        if "activo" in fields:
+            user.activo = fields["activo"]
+        user.save()
+        return user
+
+    @staticmethod
+    def delete_user(user: User) -> None:
+        from app.database import db
+        db.session.delete(user)
+        db.session.commit()
+
+    @staticmethod
+    def verify_credentials(username: str, plain_password: str):
+        user = User.query.filter_by(username=username, activo=True).first()
+        if user is None:
+            return None
+        stored = user.password_hash or ""
+        if stored.startswith(("pbkdf2:", "scrypt:")):
+            if check_password_hash(stored, plain_password):
+                return user
+            return None
+        if stored == plain_password:
+            return user
+        return None
 
 def listar_usuarios():
     usuarios, error = UserModel.get_all()
