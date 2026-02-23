@@ -3,7 +3,7 @@ from flask import Flask
 from app.config import Config
 from app.database import db
 from app.routes.api_v1 import api_v1_bp
-from app.routes import main
+from app.routes.routes import main
 
 def create_app() -> Flask:
     app = Flask(__name__)
