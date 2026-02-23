@@ -54,3 +54,22 @@ def create_user():
         return error_response("cedula_persona o username ya existe / FK invalida", 409)
 
     return created_user_response(user.to_dict())
+# Nuevo endpoint de Login
+@api_v1_bp.post("/login")
+def login():
+    payload = request.get_json(silent=True) or {}
+    username = payload.get("username")
+    password = payload.get("password")
+
+    if not username or not password:
+        return error_response("username y password son obligatorios", 400)
+
+    user = UserController.get_user_by_username(username)
+    if not user:
+        return error_response("Usuario no encontrado", 404)
+
+    # Aquí deberías usar hashing (ejemplo bcrypt), pero por ahora lo dejamos simple
+    if user.password_hash != password:
+        return error_response("Contraseña incorrecta", 401)
+
+    return users_response([user.to_dict()])

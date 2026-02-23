@@ -23,3 +23,6 @@ class UserController:
         )
         user.save()
         return user
+    @staticmethod
+    def get_user_by_username(username: str) -> User | None:
+        return User.query.filter_by(username=username).first()
