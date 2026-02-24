@@ -1,5 +1,5 @@
 from app.database import db
-
+from werkzeug.security import generate_password_hash, check_password_hash
 
 class User(db.Model):
     __tablename__ = "Usuario"
@@ -10,6 +10,14 @@ class User(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     id_rol = db.Column(db.Integer, nullable=False)
     activo = db.Column(db.Boolean, default=True)
+
+    def set_password(self, password: str) -> None:
+        """Genera y guarda el hash seguro de la contraseña"""
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password: str) -> bool:
+        """Valida la contraseña contra el hash almacenado"""
+        return check_password_hash(self.password_hash, password)
 
     def save(self) -> None:
         db.session.add(self)
