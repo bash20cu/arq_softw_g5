@@ -147,4 +147,7 @@ CREATE TABLE Caso_Soporte (
     CONSTRAINT fk_caso_usuario FOREIGN KEY (id_usuario_asignado) REFERENCES Usuario(id_usuario),
     CONSTRAINT fk_caso_orden FOREIGN KEY (id_orden) REFERENCES Orden_Compra(id_orden)
 );
+<<<<<<< HEAD:database/docker-entrypoint-initdb.d/schema.sql
 
+=======
+>>>>>>> developer:sql/schema.sql
