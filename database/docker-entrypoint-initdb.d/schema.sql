@@ -1,7 +1,6 @@
-DROP DATABASE IF EXISTS SistemaVentas;
-CREATE DATABASE SistemaVentas;
-USE SistemaVentas;
-
+DROP DATABASE IF EXISTS sistema_ventas;
+CREATE DATABASE sistema_ventas;
+USE sistema_ventas;
 -- =====================================================
 -- 1. CATÁLOGOS BASE
 -- =====================================================
@@ -148,3 +147,7 @@ CREATE TABLE Caso_Soporte (
     CONSTRAINT fk_caso_usuario FOREIGN KEY (id_usuario_asignado) REFERENCES Usuario(id_usuario),
     CONSTRAINT fk_caso_orden FOREIGN KEY (id_orden) REFERENCES Orden_Compra(id_orden)
 );
+<<<<<<< HEAD:database/docker-entrypoint-initdb.d/schema.sql
+
+=======
+>>>>>>> developer:sql/schema.sql
