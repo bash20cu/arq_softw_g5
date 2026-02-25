@@ -20,7 +20,8 @@ SET FOREIGN_KEY_CHECKS = 1;
 INSERT INTO Rol (id_rol, nombre_rol) VALUES
   (1, 'Admin'),
   (2, 'Vendedor'),
-  (3, 'Soporte');
+  (3, 'Soporte'),
+  (4, 'Cliente');
 
 INSERT INTO Provincia (id_provincia, nombre) VALUES
   (1, 'San Jose');
@@ -37,14 +38,14 @@ INSERT INTO Persona (cedula, nombre, apellido, email, telefono, id_distrito) VAL
   ('303330333', 'Brandon', 'Solis', 'brandon.solis@enviosg5.com', '88880003', 10101),
   ('404440444', 'Laura', 'Campos', 'laura.campos@enviosg5.com', '88880004', 10101);
 
--- password_hash se deja en texto plano para pruebas de desarrollo
+-- password_hash en formato seguro (Werkzeug)
 -- usuario: miguel_admin / password: admin123
 -- usuario: carlo_ventas / password: ventas123
 -- usuario: brandon_soporte / password: soporte123
 INSERT INTO Usuario (id_usuario, cedula_persona, username, password_hash, id_rol, activo) VALUES
-  (1, '101110111', 'miguel_admin', 'admin123', 1, TRUE),
-  (2, '202220222', 'carlo_ventas', 'ventas123', 2, TRUE),
-  (3, '303330333', 'brandon_soporte', 'soporte123', 3, TRUE);
+  (1, '101110111', 'miguel_admin', 'scrypt:32768:8:1$XJ9qfMRii5go98Yy$691c68c162df5c6eab07ba33ce76722ebb45567e21e4af57cd6149d9208d7677d56cf107bbd54b42efda66a970c8fd2154f820b07f4bf9caeb8949099a06977a', 1, TRUE),
+  (2, '202220222', 'carlo_ventas', 'scrypt:32768:8:1$X7zuO0w6Qy3tpCht$ac7d6f3f1c3f1dcc3eded2eba91aacf7006ef31d1426b39e77d6bf86519484d4c257e58cd8ecfbfe6e4003bb645d5270720d7073c42b52bda5812fa4b80a73a4', 2, TRUE),
+  (3, '303330333', 'brandon_soporte', 'scrypt:32768:8:1$m7qgQfX3L0VMeSrF$76b9968fc98421d096ded016240a599c10a305a75ae8a86ead3bc5fad79665ac4006b69ca27fdc1ad605088dec4049c01b0080f4b19204490780ac8c184f0804', 3, TRUE);
 
 INSERT INTO Cliente (id_cliente, cedula_persona, puntos_lealtad, estado_cliente) VALUES
   (1, '202220222', 120, 'VIP'),

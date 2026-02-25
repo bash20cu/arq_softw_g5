@@ -112,6 +112,29 @@ def test_real_create_user_validates_relationships_fk(real_client):
     assert response.status_code == 409
 
 
+def test_real_public_register_creates_persona_and_user(real_client):
+    response = real_client.post(
+        "/api/v1/auth/registro",
+        json={
+            "cedula_persona": "80160023",
+            "nombre": "Miguel",
+            "apellido": "Admin2",
+            "email": "miguel_admin2@enviosg5.com",
+            "telefono": "88112233",
+            "username": "nuevo_no_persona",
+            "password": "abc12345",
+            "activo": True,
+        },
+    )
+    assert response.status_code == 201
+
+    login_response = real_client.post(
+        "/api/v1/auth/verificar",
+        json={"username": "nuevo_no_persona", "password": "abc12345"},
+    )
+    assert login_response.status_code == 200
+
+
 def test_real_endpoint_writes_user_in_database(real_client):
     # Esperado: POST /usuario escribe realmente en MySQL (verificado por consulta directa).
     _login(real_client)

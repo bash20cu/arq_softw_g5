@@ -6,62 +6,12 @@
   <title>{% block title %}ShopEasy CRM{% endblock %}</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-  <style>
-    body { background-color: #f8f9fa; }
-    .sidebar {
-      min-height: 100vh;
-      background: #212529;
-      width: 240px;
-      position: fixed;
-      top: 0; left: 0;
-    }
-    .sidebar .brand {
-      padding: 24px 20px 16px;
-      border-bottom: 1px solid #343a40;
-    }
-    .sidebar .nav-link {
-      color: #adb5bd;
-      padding: 10px 20px;
-      border-radius: 0;
-      font-size: 14px;
-    }
-    .sidebar .nav-link:hover,
-    .sidebar .nav-link.active {
-      color: #fff;
-      background: #343a40;
-    }
-    .sidebar .nav-link i { margin-right: 8px; }
-    .main-content {
-      margin-left: 240px;
-      padding: 32px;
-    }
-    .topbar {
-      background: #fff;
-      border-bottom: 1px solid #dee2e6;
-      padding: 14px 32px;
-      margin-left: 240px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-  </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
 </head>
-<body>
-
-  <!-- Sidebar -->
-  <div class="sidebar d-flex flex-column">
-    <div class="brand">
-      <span class="text-white fw-bold fs-5">Shop<span class="text-success">Easy</span></span>
-      <div class="text-secondary" style="font-size:11px; letter-spacing:1px;">CRM SISTEMA</div>
-    </div>
-    <ul class="nav flex-column mt-2">
-      <li class="nav-item">
-        <a href="/usuarios/" class="nav-link {% if request.path.startswith('/usuarios') %}active text-white{% endif %}">
-          <i class="bi bi-people"></i> Usuarios
-        </a>
-      </li>
-    </ul>
-  </div>
+<body class="app-layout">
+  {% set banner_class = "" %}
+  {% include "partials/banner.html" %}
 
   <!-- Topbar -->
   <div class="topbar d-flex align-items-center">
@@ -75,7 +25,7 @@
   </div>
 
   <!-- Contenido principal -->
-  <div class="main-content">
+  <div class="main-content app-main">
 
     <!-- Alertas flash -->
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -92,6 +42,9 @@
 
     {% block content %}{% endblock %}
   </div>
+
+  {% set footer_class = "" %}
+  {% include "partials/footer.html" %}
 
   <!-- Modal confirmación eliminar -->
   <div class="modal fade" id="modalEliminar" tabindex="-1">
@@ -118,20 +71,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    // Conectar botones de eliminar al modal
-    function confirmarEliminar(id, username) {
-      document.getElementById('modal-username').textContent = username;
-      document.getElementById('form-eliminar').action = '/usuarios/' + id + '/eliminar';
-      new bootstrap.Modal(document.getElementById('modalEliminar')).show();
-    }
-    // Auto-cerrar alertas
-    setTimeout(() => {
-      document.querySelectorAll('.alert').forEach(a => {
-        bootstrap.Alert.getOrCreateInstance(a).close();
-      });
-    }, 4000);
-  </script>
+  <script src="{{ url_for('static', filename='js/base.js') }}"></script>
   {% block extra_js %}{% endblock %}
 </body>
 </html>

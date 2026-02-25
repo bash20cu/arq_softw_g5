@@ -1,0 +1,22 @@
+body {
+  background-color: #f8f9fa;
+}
+
+.main-content {
+  padding: 32px;
+}
+
+.topbar {
+  background: #fff;
+  border-bottom: 1px solid #dee2e6;
+  padding: 14px 32px;
+  position: sticky;
+  top: 56px;
+  z-index: 100;
+}
+
+@media (max-width: 991.98px) {
+  .topbar {
+    top: 0;
+  }
+}

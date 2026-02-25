@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+</head>
+<body class="app-layout auth-page auth-bg">
+  {% include "partials/banner.html" %}
+
+  <main class="container py-4 auth-shell registro-shell app-main">
+    <div class="auth-grid auth-grid-registro shadow-lg">
+      <section class="auth-aside">
+        <div>
+          <p class="auth-kicker mb-2">Registro de acceso</p>
+          <h1 class="h3 fw-bold mb-3">Crear credenciales de usuario</h1>
+          <p class="mb-4">
+            La cedula debe existir en la tabla Persona. La contrasena se guarda en hash seguro.
+          </p>
+          <div class="auth-bullets">
+            <div>Validacion de datos por API</div>
+            <div>Persistencia en base de datos</div>
+            <div>Login inmediato con nuevas credenciales</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="auth-card">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h2 class="h4 mb-0">Registro</h2>
+          <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('main.login_page') }}">Login</a>
+        </div>
+        <form id="registerForm" class="registro-form" novalidate>
+          <div class="row g-3">
+            <div class="col-12 col-md-6 col-xxl-4">
+              <label for="cedula" class="form-label">Cedula</label>
+              <input type="text" id="cedula" class="form-control form-control-lg" required>
+            </div>
+            <div class="col-12 col-md-6 col-xxl-4">
+              <label for="nombre" class="form-label">Nombre</label>
+              <input type="text" id="nombre" class="form-control form-control-lg" required>
+            </div>
+            <div class="col-12 col-md-6 col-xxl-4">
+              <label for="apellido" class="form-label">Apellido</label>
+              <input type="text" id="apellido" class="form-control form-control-lg" required>
+            </div>
+            <div class="col-12 col-md-6 col-xxl-4">
+              <label for="email" class="form-label">Email</label>
+              <input type="email" id="email" class="form-control form-control-lg" required>
+            </div>
+            <div class="col-12 col-md-6 col-xxl-4">
+              <label for="telefono" class="form-label">Telefono</label>
+              <input type="text" id="telefono" class="form-control form-control-lg">
+            </div>
+            <div class="col-12 col-md-6 col-xxl-4">
+              <label for="usernameReg" class="form-label">Usuario</label>
+              <input type="text" id="usernameReg" class="form-control form-control-lg" required>
+            </div>
+            <div class="col-12 col-md-6 col-xxl-4">
+              <label for="passwordReg" class="form-label">Contrasena</label>
+              <input type="password" id="passwordReg" class="form-control form-control-lg" required>
+            </div>
+            <div class="col-12 col-md-6 col-xxl-4">
+              <label class="form-label">Rol inicial</label>
+              <input type="text" class="form-control form-control-lg" value="Cliente" disabled>
+            </div>
+            <div class="col-12 col-xxl-4 d-flex align-items-end">
+              <button type="submit" class="btn btn-success w-100">Registrar</button>
+            </div>
+            <div class="col-12">
+              <div class="form-text">Si la cedula no existe en Persona, se crea con los datos enviados.</div>
+              <div id="resultadoRegistro" class="mt-2 small"></div>
+            </div>
+          </div>
+        </form>
+      </section>
+    </div>
+  </main>
+
+  {% include "partials/footer.html" %}
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="{{ url_for('static', filename='js/registro.js') }}"></script>
+</body>
+</html>

@@ -23,6 +23,12 @@ class MenuController:
             "bienvenida": f"Bienvenido, {user['username']}",
             "modulos": [
                 {
+                    "id": "usuarios",
+                    "nombre": "CRUD Usuarios",
+                    "descripcion": "Gestion completa de usuarios del sistema.",
+                    "ruta_front": "/usuarios/",
+                },
+                {
                     "id": "ordenes",
                     "nombre": "Ordenes de envio",
                     "descripcion": "Crear y dar seguimiento a ordenes activas.",

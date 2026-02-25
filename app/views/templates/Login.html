@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+</head>
+<body class="app-layout auth-page auth-bg">
+  {% include "partials/banner.html" %}
+
+  <main class="container py-4 auth-shell app-main">
+    <div class="auth-grid shadow-lg">
+      <section class="auth-aside">
+        <div>
+          <p class="auth-kicker mb-2">Envios G5</p>
+          <h1 class="h3 fw-bold mb-3">Panel de control operativo</h1>
+          <p class="mb-4">
+            Inicia sesion para acceder al menu central y a las pantallas del CRUD de usuarios.
+          </p>
+          <div class="auth-bullets">
+            <div>Autenticacion segura con hash</div>
+            <div>Sesion protegida por backend</div>
+            <div>Acceso directo a modulos</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="auth-card">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h2 class="h4 mb-0">Login</h2>
+          <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('main.register_page') }}">Registro</a>
+        </div>
+        <form id="loginForm" novalidate>
+          <div class="mb-3">
+            <label for="username" class="form-label">Usuario</label>
+            <input type="text" id="username" class="form-control form-control-lg" required>
+          </div>
+          <div class="mb-3">
+            <label for="password" class="form-label">Contrasena</label>
+            <input type="password" id="password" class="form-control form-control-lg" required>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Ingresar</button>
+        </form>
+        <div id="resultadoLogin" class="mt-3 small"></div>
+      </section>
+    </div>
+  </main>
+
+  {% include "partials/footer.html" %}
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="{{ url_for('static', filename='js/login.js') }}"></script>
+</body>
+</html>

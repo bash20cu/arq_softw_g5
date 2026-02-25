@@ -124,17 +124,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-function togglePwd() {
-  const input = document.getElementById('inputPassword');
-  const icon  = document.getElementById('eye-icon');
-  if (input.type === 'password') {
-    input.type = 'text';
-    icon.className = 'bi bi-eye-slash';
-  } else {
-    input.type = 'password';
-    icon.className = 'bi bi-eye';
-  }
-}
-</script>
+<script src="{{ url_for('static', filename='js/usuarios-form.js') }}"></script>
 {% endblock %}
