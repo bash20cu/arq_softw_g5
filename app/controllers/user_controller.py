@@ -24,6 +24,11 @@ class UserController:
         )
         user.save()
         return user
+<<<<<<< HEAD
+    @staticmethod
+    def get_user_by_username(username: str) -> User | None:
+        return User.query.filter_by(username=username).first()
+=======
 
     @staticmethod
     def get_user_by_id(user_id: int) -> User | None:
@@ -70,3 +75,4 @@ class UserController:
             return user
 
         return None
+>>>>>>> developer

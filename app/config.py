@@ -12,7 +12,7 @@ class Config:
     DB_PASSWORD = os.getenv("MYSQL_PASSWORD", "migue123!")
     DB_HOST = os.getenv("MYSQL_HOST", "localhost")
     DB_PORT = os.getenv("MYSQL_PORT", "3306")
-    DB_NAME = os.getenv("MYSQL_DATABASE", "SistemaVentas")
+    DB_NAME = os.getenv("MYSQL_DATABASE", "sistema_ventas")
 
     SQLALCHEMY_DATABASE_URI = (
         "mysql+pymysql://"
