@@ -1,4 +1,4 @@
-USE SistemaVentas;
+USE sistema_ventas;
 
 SET FOREIGN_KEY_CHECKS = 0;
 TRUNCATE TABLE Caso_Soporte;

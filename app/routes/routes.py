@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 from app.models.user import User   # ✅ importar tu modelo
+from app.models.order import Order
 from app.database import db        # ✅ importar la conexión
 
 main = Blueprint('main', __name__)
@@ -58,20 +59,13 @@ def get_clientes():
         } for c in clientes
     ])
 
-# -------------------------------
-# Rutas de Órdenes
-# -------------------------------
-from app.models.user import Orden_Compra   # ajusta al nombre real de tu modelo
-
 @main.route('/ordenes', methods=['GET'])
 def get_ordenes():
-    ordenes = Orden_Compra.query.all()
+    ordenes = Order.query.all()
     return jsonify([
         {
             "id_orden": o.id_orden,
             "estado": o.estado,
-            "id_cliente": o.id_cliente,
-            "id_usuario": o.id_usuario
         } for o in ordenes
     ])
 

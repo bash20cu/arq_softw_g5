@@ -75,11 +75,6 @@ def create_user():
         return error_response("cedula_persona o username ya existe / FK invalida", 409)
 
     return created_user_response(user.to_dict())
-<<<<<<< HEAD
-# Nuevo endpoint de Login
-@api_v1_bp.post("/login")
-def login():
-=======
 
 
 @api_v1_bp.get("/usuario/<int:user_id>")
@@ -141,7 +136,6 @@ def delete_user(user_id: int):
 
 @api_v1_bp.post("/auth/verificar")
 def verify_user():
->>>>>>> developer
     payload = request.get_json(silent=True) or {}
     username = payload.get("username")
     password = payload.get("password")
@@ -149,17 +143,6 @@ def verify_user():
     if not username or not password:
         return error_response("username y password son obligatorios", 400)
 
-<<<<<<< HEAD
-    user = UserController.get_user_by_username(username)
-    if not user:
-        return error_response("Usuario no encontrado", 404)
-
-    # Aquí deberías usar hashing (ejemplo bcrypt), pero por ahora lo dejamos simple
-    if user.password_hash != password:
-        return error_response("Contraseña incorrecta", 401)
-
-    return users_response([user.to_dict()])
-=======
     user = AuthController.verify_credentials(username=username, password=password)
     if user is None:
         return error_response("credenciales invalidas", 401)
@@ -186,4 +169,3 @@ def logout_user():
 def main_menu():
     user = session["user"]
     return MenuController.get_main_menu_payload(user), 200
->>>>>>> developer

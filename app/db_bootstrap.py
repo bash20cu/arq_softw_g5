@@ -43,8 +43,9 @@ def bootstrap_database(
         return
 
     root_dir = Path(__file__).resolve().parents[1]
-    schema_path = root_dir / "sql" / "schema.sql"
-    seed_path = root_dir / "sql" / "seed.sql"
+    sql_dir = root_dir / "database" / "docker-entrypoint-initdb.d"
+    schema_path = sql_dir / "schema.sql"
+    seed_path = sql_dir / "seed.sql"
     server_uri = _build_server_uri(db_user, db_password, db_host, db_port)
 
     if run_schema:

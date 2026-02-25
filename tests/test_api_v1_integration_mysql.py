@@ -126,7 +126,7 @@ def test_real_endpoint_writes_user_in_database(real_client):
         port=int(os.getenv("MYSQL_PORT", "3306")),
         user=os.getenv("MYSQL_USER", "root"),
         password=os.getenv("MYSQL_PASSWORD", ""),
-        database=os.getenv("MYSQL_DATABASE", "SistemaVentas"),
+        database=os.getenv("MYSQL_DATABASE", "sistema_ventas"),
         autocommit=True,
     )
     try:

@@ -1,10 +1,16 @@
 import os
+import sys
 from pathlib import Path
 
 import pymysql
 import pytest
 from flask import Flask
 from dotenv import load_dotenv
+
+# Permite `import app...` cuando pytest se ejecuta desde `tests/`.
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from app.database import db
 from app.models.order import Order
@@ -116,16 +122,27 @@ def real_client():
 
     try:
         cursor = conn.cursor()
-        root = Path(__file__).resolve().parents[1]
-        _execute_sql_file(cursor, root / "sql" / "schema.sql")
-        _execute_sql_file(cursor, root / "sql" / "seed.sql")
+        sql_dir = PROJECT_ROOT / "database" / "docker-entrypoint-initdb.d"
+        _execute_sql_file(cursor, sql_dir / "schema.sql")
+        _execute_sql_file(cursor, sql_dir / "seed.sql")
         cursor.close()
     finally:
         conn.close()
 
-    from app import create_app
+    mysql_uri = (
+        "mysql+pymysql://"
+        f"{db_user}:{db_password}@{db_host}:{db_port}/sistema_ventas"
+    )
+    app = Flask(__name__)
+    app.config.update(
+        TESTING=True,
+        SECRET_KEY="test-secret-key",
+        SQLALCHEMY_DATABASE_URI=mysql_uri,
+        SQLALCHEMY_TRACK_MODIFICATIONS=False,
+    )
 
-    app = create_app()
-    app.config.update(TESTING=True)
+    db.init_app(app)
+    app.register_blueprint(api_v1_bp)
+
     with app.test_client() as client:
         yield client
