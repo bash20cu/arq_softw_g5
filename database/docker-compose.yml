@@ -6,18 +6,11 @@ services:
     container_name: mysql_server
     restart: always
     environment:
-      # Configura la contraseña del usuario root
       MYSQL_ROOT_PASSWORD: migue123!
-      # Crea una base de datos inicial automáticamente
-      MYSQL_DATABASE: sistema_ventas
     ports:
-      # Mapeo de puertos: [Puerto en tu PC] : [Puerto dentro del contenedor]
       - "3306:3306"
     volumes:
-      # Para que tus datos no se borren al apagar el contenedor
       - mysql_data:/var/lib/mysql
-      # Para que se ejecuten automáticamente schema.sql e init.sql
-      - ./database/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
 
 
 volumes:

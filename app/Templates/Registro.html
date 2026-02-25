@@ -14,8 +14,8 @@
       <a class="navbar-brand" href="#">Proyecto G5</a>
       <div class="collapse navbar-collapse">
         <ul class="navbar-nav ms-auto">
-          <li class="nav-item"><a class="nav-link" href="Login.html">Login</a></li>
-          <li class="nav-item"><a class="nav-link active" href="Registro.html">Registro</a></li>
+          <li class="nav-item"><a class="nav-link" href="/login">Login</a></li>
+          <li class="nav-item"><a class="nav-link active" href="/registro">Registro</a></li>
         </ul>
       </div>
     </div>
@@ -62,7 +62,7 @@
       const password = document.getElementById("passwordReg").value;
       const rol = document.getElementById("rol").value;
 
-      const response = await fetch("http://localhost:5000/api/v1/usuario", {
+      const response = await fetch("/api/v1/usuario", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -77,7 +77,7 @@
       const data = await response.json();
       document.getElementById("resultadoRegistro").innerText = response.ok 
         ? "Usuario creado: " + JSON.stringify(data) 
-        : "Error: " + data.message;
+        : "Error: " + (data.error || "No autorizado o datos inválidos");
     });
   </script>
 </body>

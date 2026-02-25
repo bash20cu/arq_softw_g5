@@ -21,6 +21,13 @@ from app.routes.api_v1 import api_v1_bp
 load_dotenv()
 
 
+def _require_env(name: str) -> str:
+    value = os.getenv(name)
+    if value is None or value.strip() == "":
+        raise RuntimeError(f"Missing required environment variable for tests: {name}")
+    return value
+
+
 @pytest.fixture()
 def app(tmp_path: Path):
     db_path = tmp_path / "test_backend.db"
@@ -89,8 +96,9 @@ def client(app):
     return app.test_client()
 
 
-def _execute_sql_file(cursor, sql_path: Path):
+def _execute_sql_file(cursor, sql_path: Path, db_name: str):
     raw = sql_path.read_text(encoding="utf-8")
+    raw = raw.replace("{{DB_NAME}}", db_name)
     lines = []
     for line in raw.splitlines():
         stripped = line.strip()
@@ -104,10 +112,11 @@ def _execute_sql_file(cursor, sql_path: Path):
 
 @pytest.fixture()
 def real_client():
-    db_host = os.getenv("MYSQL_HOST", "localhost")
-    db_port = int(os.getenv("MYSQL_PORT", "3306"))
-    db_user = os.getenv("MYSQL_USER", "root")
-    db_password = os.getenv("MYSQL_PASSWORD", "")
+    db_host = _require_env("MYSQL_HOST")
+    db_port = int(_require_env("MYSQL_PORT"))
+    db_user = _require_env("MYSQL_USER")
+    db_password = _require_env("MYSQL_PASSWORD")
+    db_name = _require_env("MYSQL_DATABASE")
 
     try:
         conn = pymysql.connect(
@@ -122,16 +131,16 @@ def real_client():
 
     try:
         cursor = conn.cursor()
-        sql_dir = PROJECT_ROOT / "database" / "docker-entrypoint-initdb.d"
-        _execute_sql_file(cursor, sql_dir / "schema.sql")
-        _execute_sql_file(cursor, sql_dir / "seed.sql")
+        sql_dir = PROJECT_ROOT / "app" / "models"
+        _execute_sql_file(cursor, sql_dir / "schema.sql", db_name)
+        _execute_sql_file(cursor, sql_dir / "seed.sql", db_name)
         cursor.close()
     finally:
         conn.close()
 
     mysql_uri = (
         "mysql+pymysql://"
-        f"{db_user}:{db_password}@{db_host}:{db_port}/sistema_ventas"
+        f"{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
     )
     app = Flask(__name__)
     app.config.update(

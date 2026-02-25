@@ -7,6 +7,8 @@ from app.controllers.auth_controller import AuthController
 from app.controllers.menu_controller import MenuController
 from app.controllers.user_controller import UserController
 from app.database import db
+from app.models.order import Order
+from app.models.user import Cliente, Factura
 from app.views.user_view import created_user_response, error_response, users_response
 
 api_v1_bp = Blueprint("api_v1", __name__, url_prefix="/api/v1")
@@ -33,6 +35,53 @@ def login_required(fn):
 @api_v1_bp.get("/health")
 def health():
     return {"status": "ok"}, 200
+
+
+@api_v1_bp.get("/clientes")
+def list_clientes():
+    clientes = Cliente.query.all()
+    return (
+        [
+            {
+                "id_cliente": c.id_cliente,
+                "cedula_persona": c.cedula_persona,
+            }
+            for c in clientes
+        ],
+        200,
+    )
+
+
+@api_v1_bp.get("/ordenes")
+def list_ordenes():
+    ordenes = Order.query.all()
+    return (
+        [
+            {
+                "id_orden": o.id_orden,
+                "estado": o.estado,
+            }
+            for o in ordenes
+        ],
+        200,
+    )
+
+
+@api_v1_bp.get("/facturas")
+def list_facturas():
+    facturas = Factura.query.all()
+    return (
+        [
+            {
+                "id_factura": f.id_factura,
+                "numero_factura": f.numero_factura,
+                "monto_total": f.monto_total,
+                "fecha_emision": f.fecha_emision.isoformat() if f.fecha_emision else None,
+            }
+            for f in facturas
+        ],
+        200,
+    )
 
 
 @api_v1_bp.get("/usuario")

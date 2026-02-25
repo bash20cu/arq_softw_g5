@@ -1,6 +1,6 @@
-DROP DATABASE IF EXISTS sistema_ventas;
-CREATE DATABASE sistema_ventas;
-USE sistema_ventas;
+DROP DATABASE IF EXISTS {{DB_NAME}};
+CREATE DATABASE {{DB_NAME}};
+USE {{DB_NAME}};
 -- =====================================================
 -- 1. CATÁLOGOS BASE
 -- =====================================================
