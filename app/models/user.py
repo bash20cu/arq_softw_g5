@@ -1,5 +1,6 @@
 from app.database import db
-from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
+
 
 class User(db.Model):
     __tablename__ = "Usuario"
@@ -12,11 +13,11 @@ class User(db.Model):
     activo = db.Column(db.Boolean, default=True)
 
     def set_password(self, password: str) -> None:
-        """Genera y guarda el hash seguro de la contraseña"""
+        """Genera y guarda el hash seguro de la contraseña."""
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password: str) -> bool:
-        """Valida la contraseña contra el hash almacenado"""
+        """Valida la contraseña contra el hash almacenado."""
         return check_password_hash(self.password_hash, password)
 
     def save(self) -> None:
@@ -31,8 +32,7 @@ class User(db.Model):
             "id_rol": self.id_rol,
             "activo": self.activo,
         }
-    
-    # 👆 Mantén tu clase User tal cual está
+
 
 class Cliente(db.Model):
     __tablename__ = "Cliente"
@@ -47,7 +47,7 @@ class Cliente(db.Model):
     def to_dict(self):
         return {
             "id_cliente": self.id_cliente,
-            "cedula_persona": self.cedula_persona
+            "cedula_persona": self.cedula_persona,
         }
 
 
@@ -68,5 +68,7 @@ class Factura(db.Model):
             "id_factura": self.id_factura,
             "numero_factura": self.numero_factura,
             "monto_total": self.monto_total,
-            "fecha_emision": self.fecha_emision.isoformat() if self.fecha_emision else None
+            "fecha_emision": self.fecha_emision.isoformat()
+            if self.fecha_emision
+            else None,
         }

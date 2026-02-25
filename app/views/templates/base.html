@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}ShopEasy CRM{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #f8f9fa; }
+    .sidebar {
+      min-height: 100vh;
+      background: #212529;
+      width: 240px;
+      position: fixed;
+      top: 0; left: 0;
+    }
+    .sidebar .brand {
+      padding: 24px 20px 16px;
+      border-bottom: 1px solid #343a40;
+    }
+    .sidebar .nav-link {
+      color: #adb5bd;
+      padding: 10px 20px;
+      border-radius: 0;
+      font-size: 14px;
+    }
+    .sidebar .nav-link:hover,
+    .sidebar .nav-link.active {
+      color: #fff;
+      background: #343a40;
+    }
+    .sidebar .nav-link i { margin-right: 8px; }
+    .main-content {
+      margin-left: 240px;
+      padding: 32px;
+    }
+    .topbar {
+      background: #fff;
+      border-bottom: 1px solid #dee2e6;
+      padding: 14px 32px;
+      margin-left: 240px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar d-flex flex-column">
+    <div class="brand">
+      <span class="text-white fw-bold fs-5">Shop<span class="text-success">Easy</span></span>
+      <div class="text-secondary" style="font-size:11px; letter-spacing:1px;">CRM SISTEMA</div>
+    </div>
+    <ul class="nav flex-column mt-2">
+      <li class="nav-item">
+        <a href="/usuarios/" class="nav-link {% if request.path.startswith('/usuarios') %}active text-white{% endif %}">
+          <i class="bi bi-people"></i> Usuarios
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Topbar -->
+  <div class="topbar d-flex align-items-center">
+    <h6 class="mb-0 fw-semibold text-dark">{% block page_title %}{% endblock %}</h6>
+    <nav class="ms-3" aria-label="breadcrumb">
+      <ol class="breadcrumb mb-0 small">
+        <li class="breadcrumb-item"><a href="/usuarios/" class="text-decoration-none">Usuarios</a></li>
+        {% block breadcrumb %}{% endblock %}
+      </ol>
+    </nav>
+  </div>
+
+  <!-- Contenido principal -->
+  <div class="main-content">
+
+    <!-- Alertas flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show" role="alert">
+            <i class="bi bi-{{ 'check-circle' if category == 'success' else 'exclamation-triangle' }} me-2"></i>
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </div>
+
+  <!-- Modal confirmación eliminar -->
+  <div class="modal fade" id="modalEliminar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title text-danger"><i class="bi bi-exclamation-triangle me-2"></i>Confirmar eliminación</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body text-muted">
+          ¿Estás seguro de que deseas eliminar al usuario <strong id="modal-username"></strong>?
+          Esta acción no se puede deshacer.
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <form id="form-eliminar" method="POST">
+            <button type="submit" class="btn btn-danger">
+              <i class="bi bi-trash me-1"></i>Eliminar
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Conectar botones de eliminar al modal
+    function confirmarEliminar(id, username) {
+      document.getElementById('modal-username').textContent = username;
+      document.getElementById('form-eliminar').action = '/usuarios/' + id + '/eliminar';
+      new bootstrap.Modal(document.getElementById('modalEliminar')).show();
+    }
+    // Auto-cerrar alertas
+    setTimeout(() => {
+      document.querySelectorAll('.alert').forEach(a => {
+        bootstrap.Alert.getOrCreateInstance(a).close();
+      });
+    }, 4000);
+  </script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

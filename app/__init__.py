@@ -23,4 +23,9 @@ def create_app() -> Flask:
 
     app.register_blueprint(api_v1_bp)
     app.register_blueprint(main)
+
+    # Frontend CRUD de usuarios (templates HTML).
+    from app.routes.frontend import frontend_bp
+
+    app.register_blueprint(frontend_bp)
     return app
