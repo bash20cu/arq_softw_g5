@@ -7,6 +7,13 @@ import pytest
 pytestmark = pytest.mark.integration
 
 
+def _require_env(name: str) -> str:
+    value = os.getenv(name)
+    if value is None or value.strip() == "":
+        raise RuntimeError(f"Missing required environment variable for tests: {name}")
+    return value
+
+
 def _login(real_client):
     return real_client.post(
         "/api/v1/auth/verificar",
@@ -122,11 +129,11 @@ def test_real_endpoint_writes_user_in_database(real_client):
     assert create_response.status_code == 201
 
     conn = pymysql.connect(
-        host=os.getenv("MYSQL_HOST", "localhost"),
-        port=int(os.getenv("MYSQL_PORT", "3306")),
-        user=os.getenv("MYSQL_USER", "root"),
-        password=os.getenv("MYSQL_PASSWORD", ""),
-        database=os.getenv("MYSQL_DATABASE", "SistemaVentas"),
+        host=_require_env("MYSQL_HOST"),
+        port=int(_require_env("MYSQL_PORT")),
+        user=_require_env("MYSQL_USER"),
+        password=_require_env("MYSQL_PASSWORD"),
+        database=_require_env("MYSQL_DATABASE"),
         autocommit=True,
     )
     try:

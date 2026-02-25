@@ -1,10 +1,16 @@
 import os
+import sys
 from pathlib import Path
 
 import pymysql
 import pytest
 from flask import Flask
 from dotenv import load_dotenv
+
+# Permite `import app...` cuando pytest se ejecuta desde `tests/`.
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from app.database import db
 from app.models.order import Order
@@ -13,6 +19,13 @@ from app.models.user import User
 from app.routes.api_v1 import api_v1_bp
 
 load_dotenv()
+
+
+def _require_env(name: str) -> str:
+    value = os.getenv(name)
+    if value is None or value.strip() == "":
+        raise RuntimeError(f"Missing required environment variable for tests: {name}")
+    return value
 
 
 @pytest.fixture()
@@ -83,8 +96,9 @@ def client(app):
     return app.test_client()
 
 
-def _execute_sql_file(cursor, sql_path: Path):
+def _execute_sql_file(cursor, sql_path: Path, db_name: str):
     raw = sql_path.read_text(encoding="utf-8")
+    raw = raw.replace("{{DB_NAME}}", db_name)
     lines = []
     for line in raw.splitlines():
         stripped = line.strip()
@@ -98,10 +112,11 @@ def _execute_sql_file(cursor, sql_path: Path):
 
 @pytest.fixture()
 def real_client():
-    db_host = os.getenv("MYSQL_HOST", "localhost")
-    db_port = int(os.getenv("MYSQL_PORT", "3306"))
-    db_user = os.getenv("MYSQL_USER", "root")
-    db_password = os.getenv("MYSQL_PASSWORD", "")
+    db_host = _require_env("MYSQL_HOST")
+    db_port = int(_require_env("MYSQL_PORT"))
+    db_user = _require_env("MYSQL_USER")
+    db_password = _require_env("MYSQL_PASSWORD")
+    db_name = _require_env("MYSQL_DATABASE")
 
     try:
         conn = pymysql.connect(
@@ -116,16 +131,27 @@ def real_client():
 
     try:
         cursor = conn.cursor()
-        root = Path(__file__).resolve().parents[1]
-        _execute_sql_file(cursor, root / "sql" / "schema.sql")
-        _execute_sql_file(cursor, root / "sql" / "seed.sql")
+        sql_dir = PROJECT_ROOT / "app" / "models"
+        _execute_sql_file(cursor, sql_dir / "schema.sql", db_name)
+        _execute_sql_file(cursor, sql_dir / "seed.sql", db_name)
         cursor.close()
     finally:
         conn.close()
 
-    from app import create_app
+    mysql_uri = (
+        "mysql+pymysql://"
+        f"{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+    )
+    app = Flask(__name__)
+    app.config.update(
+        TESTING=True,
+        SECRET_KEY="test-secret-key",
+        SQLALCHEMY_DATABASE_URI=mysql_uri,
+        SQLALCHEMY_TRACK_MODIFICATIONS=False,
+    )
 
-    app = create_app()
-    app.config.update(TESTING=True)
+    db.init_app(app)
+    app.register_blueprint(api_v1_bp)
+
     with app.test_client() as client:
         yield client

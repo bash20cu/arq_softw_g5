@@ -51,27 +51,6 @@ class Cliente(db.Model):
         }
 
 
-class Orden_Compra(db.Model):
-    __tablename__ = "Orden_Compra"
-
-    id_orden = db.Column(db.Integer, primary_key=True)
-    estado = db.Column(db.String(20), nullable=False)
-    id_cliente = db.Column(db.Integer, db.ForeignKey("Cliente.id_cliente"))
-    id_usuario = db.Column(db.Integer, db.ForeignKey("Usuario.id_usuario"))
-
-    def save(self):
-        db.session.add(self)
-        db.session.commit()
-
-    def to_dict(self):
-        return {
-            "id_orden": self.id_orden,
-            "estado": self.estado,
-            "id_cliente": self.id_cliente,
-            "id_usuario": self.id_usuario
-        }
-
-
 class Factura(db.Model):
     __tablename__ = "Factura"
 

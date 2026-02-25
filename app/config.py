@@ -6,23 +6,23 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+def _require_env(name: str) -> str:
+    value = os.getenv(name)
+    if value is None or value.strip() == "":
+        raise RuntimeError(f"Missing required environment variable: {name}")
+    return value
+
+
 class Config:
-    SECRET_KEY = os.getenv("SECRET_KEY", "dev-key-cambiar-en-produccion")
-    DB_USER = os.getenv("MYSQL_USER", "root")
-    DB_PASSWORD = os.getenv("MYSQL_PASSWORD", "migue123!")
-    DB_HOST = os.getenv("MYSQL_HOST", "localhost")
-    DB_PORT = os.getenv("MYSQL_PORT", "3306")
-    DB_NAME = os.getenv("MYSQL_DATABASE", "sistema_ventas")
+    SECRET_KEY = _require_env("SECRET_KEY")
+    DB_USER = _require_env("MYSQL_USER")
+    DB_PASSWORD = _require_env("MYSQL_PASSWORD")
+    DB_HOST = _require_env("MYSQL_HOST")
+    DB_PORT = _require_env("MYSQL_PORT")
+    DB_NAME = _require_env("MYSQL_DATABASE")
 
     SQLALCHEMY_DATABASE_URI = (
         "mysql+pymysql://"
         f"{DB_USER}:{quote_plus(DB_PASSWORD)}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-
-    AUTO_DB_SCHEMA_ON_START = (
-        os.getenv("AUTO_DB_SCHEMA_ON_START", "false").strip().lower() == "true"
-    )
-    AUTO_DB_SEED_ON_START = (
-        os.getenv("AUTO_DB_SEED_ON_START", "false").strip().lower() == "true"
-    )

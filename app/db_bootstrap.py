@@ -1,15 +1,17 @@
 from pathlib import Path
 from urllib.parse import quote_plus
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 
 
 def _build_server_uri(user: str, password: str, host: str, port: str) -> str:
     return f"mysql+pymysql://{user}:{quote_plus(password)}@{host}:{port}/"
 
 
-def _read_statements(sql_file: Path) -> list[str]:
+def _read_statements(sql_file: Path, db_name: str | None = None) -> list[str]:
     raw = sql_file.read_text(encoding="utf-8")
+    if db_name:
+        raw = raw.replace("{{DB_NAME}}", db_name)
     lines = []
     for line in raw.splitlines():
         stripped = line.strip()
@@ -22,9 +24,22 @@ def _read_statements(sql_file: Path) -> list[str]:
     return [stmt for stmt in statements if stmt]
 
 
-def run_sql_file(server_uri: str, sql_file: Path) -> None:
+def _database_exists(server_uri: str, db_name: str) -> bool:
     engine = create_engine(server_uri)
-    statements = _read_statements(sql_file)
+    with engine.connect() as conn:
+        result = conn.execute(
+            text(
+                "SELECT 1 FROM INFORMATION_SCHEMA.SCHEMATA "
+                "WHERE SCHEMA_NAME = :db_name LIMIT 1"
+            ),
+            {"db_name": db_name},
+        )
+        return result.scalar() is not None
+
+
+def run_sql_file(server_uri: str, sql_file: Path, db_name: str | None = None) -> None:
+    engine = create_engine(server_uri)
+    statements = _read_statements(sql_file, db_name=db_name)
     with engine.begin() as conn:
         for stmt in statements:
             conn.exec_driver_sql(stmt)
@@ -36,19 +51,16 @@ def bootstrap_database(
     db_password: str,
     db_host: str,
     db_port: str,
-    run_schema: bool,
-    run_seed: bool,
+    db_name: str,
 ) -> None:
-    if not run_schema and not run_seed:
+    server_uri = _build_server_uri(db_user, db_password, db_host, db_port)
+    if _database_exists(server_uri, db_name):
         return
 
     root_dir = Path(__file__).resolve().parents[1]
-    schema_path = root_dir / "sql" / "schema.sql"
-    seed_path = root_dir / "sql" / "seed.sql"
-    server_uri = _build_server_uri(db_user, db_password, db_host, db_port)
+    sql_dir = root_dir / "app" / "models"
+    schema_path = sql_dir / "schema.sql"
+    seed_path = sql_dir / "seed.sql"
 
-    if run_schema:
-        run_sql_file(server_uri, schema_path)
-
-    if run_seed:
-        run_sql_file(server_uri, seed_path)
+    run_sql_file(server_uri, schema_path, db_name=db_name)
+    run_sql_file(server_uri, seed_path, db_name=db_name)
