@@ -8,7 +8,7 @@ from app.controllers.menu_controller import MenuController
 from app.controllers.user_controller import UserController
 from app.database import db
 from app.models.order import Order
-from app.models.user import Cliente, Factura
+from app.models.user import Cliente, Factura, Persona
 from app.views.user_view import created_user_response, error_response, users_response
 
 api_v1_bp = Blueprint("api_v1", __name__, url_prefix="/api/v1")
@@ -119,6 +119,8 @@ def create_user():
             id_rol=id_rol_value,
             activo=_to_bool(activo),
         )
+    except ValueError as exc:
+        return error_response(str(exc), 400)
     except IntegrityError:
         db.session.rollback()
         return error_response("cedula_persona o username ya existe / FK invalida", 409)
@@ -160,6 +162,8 @@ def update_user(user_id: int):
 
     try:
         updated_user = UserController.update_user(user, **update_fields)
+    except ValueError as exc:
+        return error_response(str(exc), 400)
     except IntegrityError:
         db.session.rollback()
         return error_response("datos duplicados o FK invalida", 409)
@@ -204,6 +208,70 @@ def verify_user():
         "next": "/api/v1/menu/principal",
         "user": user.to_dict(),
     }, 200
+
+
+@api_v1_bp.post("/auth/registro")
+def register_user():
+    payload = request.get_json(silent=True) or {}
+    cedula_persona = (payload.get("cedula_persona") or "").strip()
+    username = (payload.get("username") or "").strip()
+    password = payload.get("password")
+    nombre = (payload.get("nombre") or "").strip()
+    apellido = (payload.get("apellido") or "").strip()
+    email = (payload.get("email") or "").strip()
+    telefono = (payload.get("telefono") or "").strip() or None
+    id_distrito = payload.get("id_distrito")
+    activo = payload.get("activo", True)
+
+    if not cedula_persona or not username or not password:
+        return error_response("cedula_persona, username y password son obligatorios", 400)
+
+    if UserController.get_user_by_username(username) is not None:
+        return error_response("username ya existe", 409)
+
+    if UserController.get_user_by_cedula(cedula_persona) is not None:
+        return error_response("ya existe un usuario para esa cedula_persona", 409)
+
+    persona = Persona.query.filter_by(cedula=cedula_persona).first()
+    if persona is None:
+        if not nombre or not apellido or not email:
+            return error_response(
+                "si la cedula no existe en Persona debes enviar nombre, apellido y email",
+                400,
+            )
+
+        if Persona.query.filter_by(email=email).first() is not None:
+            return error_response("email ya existe en Persona", 409)
+
+        persona = Persona(
+            cedula=cedula_persona,
+            nombre=nombre,
+            apellido=apellido,
+            email=email,
+            telefono=telefono,
+            id_distrito=id_distrito,
+        )
+        db.session.add(persona)
+
+    # Registro publico: siempre inicia como Cliente.
+    id_rol_value = 4
+
+    try:
+        user = UserController.create_user(
+            cedula_persona=cedula_persona,
+            username=username,
+            password_hash=password,
+            id_rol=id_rol_value,
+            activo=_to_bool(activo),
+        )
+    except ValueError as exc:
+        db.session.rollback()
+        return error_response(str(exc), 400)
+    except IntegrityError:
+        db.session.rollback()
+        return error_response("cedula_persona o username ya existe / FK invalida", 409)
+
+    return created_user_response(user.to_dict())
 
 
 @api_v1_bp.post("/auth/logout")

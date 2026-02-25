@@ -6,6 +6,7 @@ import pymysql
 import pytest
 from flask import Flask
 from dotenv import load_dotenv
+from werkzeug.security import generate_password_hash
 
 # Permite `import app...` cuando pytest se ejecuta desde `tests/`.
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -15,7 +16,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from app.database import db
 from app.models.order import Order
 from app.models.support_case import SupportCase
-from app.models.user import User
+from app.models.user import Persona, User
 from app.routes.api_v1 import api_v1_bp
 
 load_dotenv()
@@ -47,10 +48,74 @@ def app(tmp_path: Path):
         db.create_all()
 
         db.session.add(
+            Persona(
+                cedula="101110111",
+                nombre="Miguel",
+                apellido="Admin",
+                email="miguel_admin_test@enviosg5.com",
+                telefono="88880001",
+            )
+        )
+        db.session.add(
+            Persona(
+                cedula="202220222",
+                nombre="Carlo",
+                apellido="Vargas",
+                email="carlo_ventas_test@enviosg5.com",
+                telefono="88880002",
+            )
+        )
+        db.session.add(
+            Persona(
+                cedula="404440444",
+                nombre="Laura",
+                apellido="Campos",
+                email="laura_campos_test@enviosg5.com",
+                telefono="88880004",
+            )
+        )
+        db.session.add(
+            Persona(
+                cedula="505550555",
+                nombre="Q",
+                apellido="User",
+                email="qa_user_test@enviosg5.com",
+                telefono="88880005",
+            )
+        )
+        db.session.add(
+            Persona(
+                cedula="606660666",
+                nombre="Before",
+                apellido="Update",
+                email="before_update_test@enviosg5.com",
+                telefono="88880006",
+            )
+        )
+        db.session.add(
+            Persona(
+                cedula="707770777",
+                nombre="To",
+                apellido="Delete",
+                email="to_delete_test@enviosg5.com",
+                telefono="88880007",
+            )
+        )
+        db.session.add(
+            Persona(
+                cedula="909990999",
+                nombre="Nuevo",
+                apellido="Publico",
+                email="nuevo_publico_test@enviosg5.com",
+                telefono="88880009",
+            )
+        )
+
+        db.session.add(
             User(
                 cedula_persona="101110111",
                 username="miguel_admin",
-                password_hash="admin123",
+                password_hash=generate_password_hash("admin123"),
                 id_rol=1,
                 activo=True,
             )
@@ -59,7 +124,7 @@ def app(tmp_path: Path):
             User(
                 cedula_persona="202220222",
                 username="carlo_ventas",
-                password_hash="ventas123",
+                password_hash=generate_password_hash("ventas123"),
                 id_rol=2,
                 activo=True,
             )

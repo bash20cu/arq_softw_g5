@@ -1,3 +1,6 @@
+from app.models.user import User
+
+
 def _login(client):
     return client.post(
         "/api/v1/auth/verificar",
@@ -112,6 +115,36 @@ def test_create_user_success(client):
     assert response.status_code == 201
     assert data["username"] == "laura_ops"
     assert "id_usuario" in data
+
+    with client.application.app_context():
+        stored_user = User.query.filter_by(username="laura_ops").first()
+        assert stored_user is not None
+        assert stored_user.password_hash.startswith(("pbkdf2:", "scrypt:"))
+
+
+def test_public_register_and_login(client):
+    register_response = client.post(
+        "/api/v1/auth/registro",
+        json={
+            "cedula_persona": "909990999",
+            "nombre": "Nuevo",
+            "apellido": "Publico",
+            "email": "nuevo_publico_app@enviosg5.com",
+            "telefono": "88881111",
+            "username": "nuevo_publico",
+            "password": "secret123",
+            "activo": True,
+        },
+    )
+    assert register_response.status_code == 201
+    register_data = register_response.get_json()
+    assert register_data["id_rol"] == 4
+
+    login_response = client.post(
+        "/api/v1/auth/verificar",
+        json={"username": "nuevo_publico", "password": "secret123"},
+    )
+    assert login_response.status_code == 200
 
 
 def test_get_user_by_id(client):

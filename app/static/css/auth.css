@@ -1,0 +1,92 @@
+.auth-page {
+  min-height: 100vh;
+}
+
+.auth-bg {
+  background:
+    radial-gradient(circle at 10% 20%, rgba(13, 110, 253, 0.22), transparent 45%),
+    radial-gradient(circle at 90% 10%, rgba(25, 135, 84, 0.16), transparent 30%),
+    #eef2f7;
+}
+
+.auth-shell {
+  display: flex;
+  align-items: center;
+}
+
+.auth-grid {
+  width: 100%;
+  border-radius: 20px;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  background: #fff;
+}
+
+.auth-aside {
+  color: #fff;
+  padding: 2.5rem;
+  background: linear-gradient(135deg, #0d6efd 0%, #0a4fba 100%);
+  display: flex;
+  align-items: center;
+}
+
+.auth-card {
+  padding: 2.5rem;
+}
+
+.auth-kicker {
+  text-transform: uppercase;
+  letter-spacing: 0.08rem;
+  font-size: 0.8rem;
+  opacity: 0.9;
+}
+
+.auth-bullets div {
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 0.55rem 0.8rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.92rem;
+}
+
+#resultadoLogin,
+#resultadoRegistro {
+  min-height: 1.4rem;
+}
+
+.auth-grid-registro {
+  grid-template-columns: 0.9fr 1.35fr;
+}
+
+.registro-shell {
+  max-width: 1360px;
+}
+
+.registro-form {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.15rem;
+}
+
+.registro-form .form-control-lg {
+  min-height: calc(2.9rem + 2px);
+  font-size: 1rem;
+}
+
+@media (max-width: 991.98px) {
+  .auth-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-aside,
+  .auth-card {
+    padding: 1.4rem;
+  }
+
+  .registro-shell {
+    max-width: 100%;
+  }
+}

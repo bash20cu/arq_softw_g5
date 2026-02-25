@@ -140,6 +140,8 @@ Credenciales demo para `POST /api/v1/auth/verificar`:
 - `carla_ventas` / `ventas123`
 - `brandon_soporte` / `soporte123`
 
+Nota: en la base de datos las contrasenas se almacenan con hash (no en texto plano).
+
 ## Carga automatica al iniciar app
 
 La app valida si existe la base configurada en `MYSQL_DATABASE`.

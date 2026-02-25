@@ -1,0 +1,35 @@
+<div class="site-banner {{ banner_class | default('') }}">
+  <div class="container-fluid d-flex flex-wrap justify-content-between align-items-center gap-2">
+    <a href="{{ url_for('main.principal_page') }}" class="banner-brand text-decoration-none">
+      <div class="banner-brand-title">Shop<span class="easy">Easy</span></div>
+      <div class="banner-brand-subtitle">CRM SISTEMA</div>
+    </a>
+    {% set session_user = session.get('user') %}
+    {% if session_user %}
+      {% set username = session_user.get('username', 'Usuario') %}
+      <div class="dropdown">
+        <button
+          class="btn btn-sm banner-user-btn d-flex align-items-center gap-2"
+          type="button"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          <span class="banner-avatar">{{ (username[:1] if username else 'U') | upper }}</span>
+          <span>{{ username }}</span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><h6 class="dropdown-header">{{ username }}</h6></li>
+          <li><a class="dropdown-item" href="{{ url_for('main.principal_page') }}">Principal</a></li>
+          <li><a class="dropdown-item" href="/usuarios/">Usuarios</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item text-danger" href="{{ url_for('main.logout_page') }}">Cerrar sesion</a></li>
+        </ul>
+      </div>
+    {% else %}
+      <div class="small d-flex flex-wrap gap-3">
+        <a class="link-light text-decoration-none" href="{{ url_for('main.login_page') }}">Login</a>
+        <a class="link-light text-decoration-none" href="{{ url_for('main.register_page') }}">Registro</a>
+      </div>
+    {% endif %}
+  </div>
+</div>

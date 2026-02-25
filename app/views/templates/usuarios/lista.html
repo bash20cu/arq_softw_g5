@@ -141,12 +141,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-function filtrar(q) {
-  q = q.toLowerCase();
-  document.querySelectorAll('#tabla-usuarios tbody tr').forEach(tr => {
-    tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
-  });
-}
-</script>
+<script src="{{ url_for('static', filename='js/usuarios-lista.js') }}"></script>
 {% endblock %}

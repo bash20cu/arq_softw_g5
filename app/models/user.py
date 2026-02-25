@@ -2,6 +2,21 @@ from app.database import db
 from werkzeug.security import check_password_hash, generate_password_hash
 
 
+class Persona(db.Model):
+    __tablename__ = "Persona"
+
+    cedula = db.Column(db.String(20), primary_key=True)
+    nombre = db.Column(db.String(100), nullable=False)
+    apellido = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(150), unique=True, nullable=False)
+    telefono = db.Column(db.String(20), nullable=True)
+    id_distrito = db.Column(db.Integer, nullable=True)
+
+    def save(self) -> None:
+        db.session.add(self)
+        db.session.commit()
+
+
 class User(db.Model):
     __tablename__ = "Usuario"
 

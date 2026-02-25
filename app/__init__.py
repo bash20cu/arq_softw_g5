@@ -8,7 +8,7 @@ from app.routes.routes import main
 
 
 def create_app() -> Flask:
-    app = Flask(__name__, template_folder="Templates")
+    app = Flask(__name__, template_folder="views/templates")
     app.config.from_object(Config)
 
     bootstrap_database(
