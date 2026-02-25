@@ -60,8 +60,8 @@
 
       const data = await response.json();
       document.getElementById("resultadoLogin").innerText = response.ok 
-        ? "Login exitoso: " + JSON.stringify(data.user) 
-        : "Error: " + data.message;
+        ? "Login exitoso: " + JSON.stringify(data.users[0]) 
+        : "Error: " + (data.error || "Credenciales inválidas");
     });
   </script>
 </body>

@@ -16,6 +16,9 @@ services:
     volumes:
       # Para que tus datos no se borren al apagar el contenedor
       - mysql_data:/var/lib/mysql
+      # Para que se ejecuten automáticamente schema.sql e init.sql
+      - ./database/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+
 
 volumes:
   mysql_data:

@@ -42,3 +42,52 @@ def register():
     new_user.save()
 
     return jsonify({"message": "Usuario registrado con éxito", "user": new_user.to_dict()})
+
+# -------------------------------
+# Rutas de Clientes
+# -------------------------------
+from app.models.user import Cliente   # ajusta al nombre real de tu modelo
+
+@main.route('/clientes', methods=['GET'])
+def get_clientes():
+    clientes = Cliente.query.all()
+    return jsonify([
+        {
+            "id_cliente": c.id_cliente,
+            "cedula_persona": c.cedula_persona
+        } for c in clientes
+    ])
+
+# -------------------------------
+# Rutas de Órdenes
+# -------------------------------
+from app.models.user import Orden_Compra   # ajusta al nombre real de tu modelo
+
+@main.route('/ordenes', methods=['GET'])
+def get_ordenes():
+    ordenes = Orden_Compra.query.all()
+    return jsonify([
+        {
+            "id_orden": o.id_orden,
+            "estado": o.estado,
+            "id_cliente": o.id_cliente,
+            "id_usuario": o.id_usuario
+        } for o in ordenes
+    ])
+
+# -------------------------------
+# Rutas de Facturas
+# -------------------------------
+from app.models.user import Factura   # ajusta al nombre real de tu modelo
+
+@main.route('/facturas', methods=['GET'])
+def get_facturas():
+    facturas = Factura.query.all()
+    return jsonify([
+        {
+            "id_factura": f.id_factura,
+            "numero_factura": f.numero_factura,
+            "monto_total": f.monto_total,
+            "fecha_emision": f.fecha_emision.isoformat()
+        } for f in facturas
+    ])

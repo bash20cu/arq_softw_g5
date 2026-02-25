@@ -9,6 +9,9 @@ def create_app() -> Flask:
     app = Flask(__name__)
     app.config.from_object(Config)
 
+    
+    print("DB URI en runtime:", app.config['SQLALCHEMY_DATABASE_URI'])
+
     db.init_app(app)
 
     app.register_blueprint(api_v1_bp)
