@@ -1,4 +1,4 @@
-from flask import flash, redirect, request, url_for
+from flask import flash, redirect, request, session, url_for
 from sqlalchemy.exc import IntegrityError
 
 from app.controllers.user_controller import UserController
@@ -6,12 +6,23 @@ from app.database import db
 from app.views.user_view import UserView
 
 
+def _ensure_session():
+    if session.get("user") is None:
+        flash("Debes iniciar sesión para acceder a este módulo.", "error")
+        return False
+    return True
+
+
 def listar_usuarios():
+    if not _ensure_session():
+        return redirect(url_for("main.login_page"))
     usuarios = UserController.list_users()
     return UserView.render_lista(usuarios=usuarios, error=None)
 
 
 def detalle_usuario(usuario_id):
+    if not _ensure_session():
+        return redirect(url_for("main.login_page"))
     usuario = UserController.get_user_by_id(usuario_id)
     if usuario is None:
         flash("Usuario no encontrado.", "error")
@@ -20,6 +31,8 @@ def detalle_usuario(usuario_id):
 
 
 def crear_usuario():
+    if not _ensure_session():
+        return redirect(url_for("main.login_page"))
     if request.method == "POST":
         data, form_errors = _parse_form(is_create=True)
         if form_errors:
@@ -41,6 +54,8 @@ def crear_usuario():
 
 
 def editar_usuario(usuario_id):
+    if not _ensure_session():
+        return redirect(url_for("main.login_page"))
     usuario = UserController.get_user_by_id(usuario_id)
     if usuario is None:
         flash("Usuario no encontrado.", "error")
@@ -82,6 +97,8 @@ def editar_usuario(usuario_id):
 
 
 def eliminar_usuario(usuario_id):
+    if not _ensure_session():
+        return redirect(url_for("main.login_page"))
     usuario = UserController.get_user_by_id(usuario_id)
     if usuario is None:
         flash("Usuario no encontrado.", "error")

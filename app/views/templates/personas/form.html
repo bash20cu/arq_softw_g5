@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} — ShopEasy CRM{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block breadcrumb %}
+  <li class="breadcrumb-item"><a href="/personas/" class="text-decoration-none">Personas</a></li>
+  <li class="breadcrumb-item active">{{ title }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white border-bottom py-3">
+        <h6 class="mb-0 fw-semibold">
+          {% if action == 'crear' %}
+          <i class="bi bi-person-plus text-success me-2"></i>Datos de la nueva persona
+          {% else %}
+          <i class="bi bi-pencil-square text-primary me-2"></i>Modificar persona
+          {% if cedula %}<span class="text-muted fw-normal small ms-2">Cédula {{ cedula }}</span>{% endif %}
+          {% endif %}
+        </h6>
+      </div>
+      <div class="card-body p-4">
+        <form method="POST">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Cédula {% if action == 'crear' %}<span class="text-danger">*</span>{% endif %}</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-card-text"></i></span>
+                <input type="text" name="cedula" class="form-control" value="{{ persona.cedula or cedula or '' }}" {% if action != 'crear' %}readonly{% endif %} required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Nombre <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                <input type="text" name="nombre" class="form-control" value="{{ persona.nombre or '' }}" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Apellido <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+                <input type="text" name="apellido" class="form-control" value="{{ persona.apellido or '' }}" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Email <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                <input type="email" name="email" class="form-control" value="{{ persona.email or '' }}" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Teléfono</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                <input type="text" name="telefono" class="form-control" value="{{ persona.telefono or '' }}">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Distrito</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                <select name="id_distrito" class="form-select">
+                  <option value="">Sin distrito</option>
+                  {% for distrito in distritos %}
+                  <option value="{{ distrito.id_distrito }}" {% if persona.id_distrito == distrito.id_distrito %}selected{% endif %}>
+                    {{ distrito.id_distrito }} · {{ distrito.nombre }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <hr class="my-4">
+
+          <div class="d-flex justify-content-end gap-2">
+            <a href="/personas/" class="btn btn-secondary">
+              <i class="bi bi-arrow-left me-1"></i>Cancelar
+            </a>
+            <button type="submit" class="btn btn-{{ 'success' if action == 'crear' else 'primary' }}">
+              {% if action == 'crear' %}
+              <i class="bi bi-plus-circle me-1"></i>Crear Persona
+              {% else %}
+              <i class="bi bi-check-circle me-1"></i>Guardar Cambios
+              {% endif %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

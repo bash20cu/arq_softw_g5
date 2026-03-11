@@ -168,3 +168,90 @@ def test_real_endpoint_writes_user_in_database(real_client):
             assert count == 1
     finally:
         conn.close()
+
+
+def test_real_admin_can_create_product(real_client):
+    _login(real_client)
+    response = real_client.post(
+        "/api/v1/productos",
+        json={"nombre": "Embalaje Seguro", "precio_actual": 99.90, "stock": 30},
+    )
+    assert response.status_code == 201
+    data = response.get_json()
+    assert data["nombre"] == "Embalaje Seguro"
+
+
+def test_real_vendor_can_create_order_and_stock_changes(real_client):
+    real_client.post(
+        "/api/v1/auth/verificar",
+        json={"username": "carlo_ventas", "password": "ventas123"},
+    )
+
+    before_products = real_client.get("/api/v1/productos")
+    assert before_products.status_code == 200
+    initial_stock = {
+        item["id_producto"]: item["stock"] for item in before_products.get_json()
+    }
+
+    create_response = real_client.post(
+        "/api/v1/ordenes",
+        json={
+            "id_cliente": 1,
+            "detalles": [{"id_producto": 1, "cantidad": 2}],
+        },
+    )
+    assert create_response.status_code == 201
+    order_data = create_response.get_json()
+    assert order_data["estado"] == "Pendiente"
+
+    after_products = real_client.get("/api/v1/productos")
+    after_stock = {item["id_producto"]: item["stock"] for item in after_products.get_json()}
+    assert after_stock[1] == initial_stock[1] - 2
+
+    detail_response = real_client.get(f"/api/v1/ordenes/{order_data['id_orden']}")
+    assert detail_response.status_code == 200
+    assert len(detail_response.get_json()["detalles"]) == 1
+
+
+def test_real_catalogs_are_available_after_bootstrap(real_client):
+    _login(real_client)
+    response = real_client.get("/api/v1/catalogos/distritos")
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert len(data) >= 1
+    assert data[0]["id_distrito"] == 10101
+
+
+def test_real_persona_crud_lifecycle(real_client):
+    _login(real_client)
+
+    create_response = real_client.post(
+        "/api/v1/personas",
+        json={
+            "cedula": "909090901",
+            "nombre": "Laura",
+            "apellido": "Nueva",
+            "email": "laura.nueva.real@enviosg5.com",
+            "telefono": "88776655",
+            "id_distrito": 10101,
+        },
+    )
+    assert create_response.status_code == 201
+
+    get_response = real_client.get("/api/v1/personas/909090901")
+    assert get_response.status_code == 200
+    assert get_response.get_json()["nombre"] == "Laura"
+
+    update_response = real_client.put(
+        "/api/v1/personas/909090901",
+        json={"telefono": "88990011"},
+    )
+    assert update_response.status_code == 200
+    assert update_response.get_json()["telefono"] == "88990011"
+
+    delete_response = real_client.delete("/api/v1/personas/909090901")
+    assert delete_response.status_code == 200
+
+    get_deleted = real_client.get("/api/v1/personas/909090901")
+    assert get_deleted.status_code == 404

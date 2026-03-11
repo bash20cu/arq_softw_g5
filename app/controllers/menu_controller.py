@@ -23,22 +23,28 @@ class MenuController:
             "bienvenida": f"Bienvenido, {user['username']}",
             "modulos": [
                 {
+                    "id": "personas",
+                    "nombre": "Personas",
+                    "descripcion": "Directorio base de personas y datos de contacto.",
+                    "ruta_front": "/personas/",
+                },
+                {
                     "id": "usuarios",
                     "nombre": "CRUD Usuarios",
                     "descripcion": "Gestion completa de usuarios del sistema.",
                     "ruta_front": "/usuarios/",
                 },
                 {
-                    "id": "ordenes",
-                    "nombre": "Ordenes de envio",
-                    "descripcion": "Crear y dar seguimiento a ordenes activas.",
-                    "ruta_front": "/principal/ordenes",
+                    "id": "productos",
+                    "nombre": "Productos",
+                    "descripcion": "Catálogo de productos, precios y stock.",
+                    "ruta_front": "/productos/",
                 },
                 {
-                    "id": "clientes",
-                    "nombre": "Clientes",
-                    "descripcion": "Gestion de clientes y datos de contacto.",
-                    "ruta_front": "/principal/clientes",
+                    "id": "ordenes",
+                    "nombre": "Ordenes de compra",
+                    "descripcion": "Generación de órdenes y consulta del detalle.",
+                    "ruta_front": "/ordenes/",
                 },
                 {
                     "id": "campanias",

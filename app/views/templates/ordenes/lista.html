@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Órdenes — ShopEasy CRM{% endblock %}
+{% block page_title %}Gestión de Órdenes{% endblock %}
+{% block breadcrumb %}
+  <li class="breadcrumb-item active">Órdenes</li>
+{% endblock %}
+
+{% block content %}
+{% if ordenes %}
+<div class="row g-3 mb-4">
+  <div class="col-sm-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="bg-primary bg-opacity-10 rounded-3 p-3">
+          <i class="bi bi-receipt fs-4 text-primary"></i>
+        </div>
+        <div>
+          <div class="fs-3 fw-bold">{{ ordenes | length }}</div>
+          <div class="text-muted small">Órdenes registradas</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="bg-warning bg-opacity-10 rounded-3 p-3">
+          <i class="bi bi-hourglass-split fs-4 text-warning"></i>
+        </div>
+        <div>
+          <div class="fs-3 fw-bold">{{ ordenes | selectattr('estado', 'equalto', 'Pendiente') | list | length }}</div>
+          <div class="text-muted small">Pendientes</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="bg-success bg-opacity-10 rounded-3 p-3">
+          <i class="bi bi-check2-circle fs-4 text-success"></i>
+        </div>
+        <div>
+          <div class="fs-3 fw-bold">{{ ordenes | selectattr('estado', 'equalto', 'Procesado') | list | length }}</div>
+          <div class="text-muted small">Procesadas</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="card border-0 shadow-sm">
+  <div class="card-header bg-white border-bottom d-flex align-items-center justify-content-between py-3">
+    <h6 class="mb-0 fw-semibold">Listado de órdenes</h6>
+    <div class="d-flex gap-2">
+      <input type="text" class="form-control form-control-sm" id="buscador"
+             placeholder="Buscar orden..." style="width:220px" oninput="filtrarOrdenes(this.value)">
+      <a href="/ordenes/nuevo" class="btn btn-success btn-sm">
+        <i class="bi bi-plus-lg me-1"></i>Nueva Orden
+      </a>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    {% if error %}
+    <div class="text-center py-5">
+      <i class="bi bi-wifi-off fs-1 text-danger opacity-50"></i>
+      <p class="mt-3 text-muted">{{ error }}</p>
+    </div>
+    {% elif not ordenes %}
+    <div class="text-center py-5">
+      <i class="bi bi-inbox fs-1 text-muted opacity-50"></i>
+      <p class="mt-3 text-muted">No hay órdenes registradas.</p>
+      <a href="/ordenes/nuevo" class="btn btn-success btn-sm">Crear la primera</a>
+    </div>
+    {% else %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0" id="tabla-ordenes">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-4">#</th>
+            <th>Cliente</th>
+            <th>Vendedor</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+            <th>Total</th>
+            <th class="text-end pe-4">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for o in ordenes %}
+          <tr>
+            <td class="ps-4 text-muted small">{{ o.id_orden }}</td>
+            <td>Cliente #{{ o.id_cliente }}</td>
+            <td>Usuario #{{ o.id_usuario }}</td>
+            <td>{{ o.fecha_orden.strftime('%d/%m/%Y %H:%M') if o.fecha_orden else '—' }}</td>
+            <td><span class="badge bg-primary bg-opacity-10 text-primary">{{ o.estado }}</span></td>
+            <td>Q {{ '%.2f'|format(o.detalles | sum(attribute='subtotal')) }}</td>
+            <td class="text-end pe-4">
+              <a href="/ordenes/{{ o.id_orden }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-eye"></i></a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/ordenes-lista.js') }}"></script>
+{% endblock %}

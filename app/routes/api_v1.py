@@ -5,9 +5,11 @@ from sqlalchemy.exc import IntegrityError
 
 from app.controllers.auth_controller import AuthController
 from app.controllers.menu_controller import MenuController
+from app.controllers.order_controller import OrderController
+from app.controllers.persona_controller import PersonaController
+from app.controllers.product_controller import ProductController
 from app.controllers.user_controller import UserController
 from app.database import db
-from app.models.order import Order
 from app.models.user import Cliente, Factura, Persona
 from app.views.user_view import created_user_response, error_response, users_response
 
@@ -32,12 +34,29 @@ def login_required(fn):
     return wrapper
 
 
+def roles_required(*allowed_roles):
+    def decorator(fn):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            user = session.get("user")
+            if user is None:
+                return error_response("sesion no verificada", 401)
+            if user.get("id_rol") not in allowed_roles:
+                return error_response("forbidden", 403)
+            return fn(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
 @api_v1_bp.get("/health")
 def health():
     return {"status": "ok"}, 200
 
 
 @api_v1_bp.get("/clientes")
+@login_required
 def list_clientes():
     clientes = Cliente.query.all()
     return (
@@ -53,13 +72,18 @@ def list_clientes():
 
 
 @api_v1_bp.get("/ordenes")
+@login_required
 def list_ordenes():
-    ordenes = Order.query.all()
+    ordenes = OrderController.list_orders()
     return (
         [
             {
                 "id_orden": o.id_orden,
+                "id_cliente": o.id_cliente,
+                "id_usuario": o.id_usuario,
+                "fecha_orden": o.fecha_orden.isoformat() if o.fecha_orden else None,
                 "estado": o.estado,
+                "total": OrderController.calculate_total(o),
             }
             for o in ordenes
         ],
@@ -67,7 +91,149 @@ def list_ordenes():
     )
 
 
+@api_v1_bp.get("/catalogos/roles")
+@login_required
+def list_roles():
+    return [role.to_dict() for role in PersonaController.list_roles()], 200
+
+
+@api_v1_bp.get("/catalogos/provincias")
+@login_required
+def list_provincias():
+    return [provincia.to_dict() for provincia in PersonaController.list_provincias()], 200
+
+
+@api_v1_bp.get("/catalogos/cantones")
+@login_required
+def list_cantones():
+    return [canton.to_dict() for canton in PersonaController.list_cantones()], 200
+
+
+@api_v1_bp.get("/catalogos/distritos")
+@login_required
+def list_distritos():
+    return [distrito.to_dict() for distrito in PersonaController.list_distritos()], 200
+
+
+@api_v1_bp.get("/personas")
+@login_required
+def list_personas():
+    personas = PersonaController.list_personas()
+    return [persona.to_dict() for persona in personas], 200
+
+
+@api_v1_bp.post("/personas")
+@roles_required(1)
+def create_persona():
+    payload = request.get_json(silent=True) or {}
+    try:
+        persona = PersonaController.create_persona(
+            cedula=payload.get("cedula"),
+            nombre=payload.get("nombre"),
+            apellido=payload.get("apellido"),
+            email=payload.get("email"),
+            telefono=payload.get("telefono"),
+            id_distrito=payload.get("id_distrito"),
+        )
+    except ValueError as exc:
+        db.session.rollback()
+        return error_response(str(exc), 400)
+    except IntegrityError:
+        db.session.rollback()
+        return error_response("cedula o email ya existe / FK invalida", 409)
+    return persona.to_dict(), 201
+
+
+@api_v1_bp.get("/personas/<string:cedula>")
+@login_required
+def get_persona(cedula: str):
+    persona = PersonaController.get_persona_by_cedula(cedula)
+    if persona is None:
+        return error_response("persona no encontrada", 404)
+    return persona.to_dict(), 200
+
+
+@api_v1_bp.put("/personas/<string:cedula>")
+@roles_required(1)
+def update_persona(cedula: str):
+    persona = PersonaController.get_persona_by_cedula(cedula)
+    if persona is None:
+        return error_response("persona no encontrada", 404)
+
+    payload = request.get_json(silent=True) or {}
+    allowed_fields = {"nombre", "apellido", "email", "telefono", "id_distrito"}
+    update_fields = {k: v for k, v in payload.items() if k in allowed_fields}
+    if not update_fields:
+        return error_response("no hay campos validos para actualizar", 400)
+
+    try:
+        persona = PersonaController.update_persona(persona, **update_fields)
+    except ValueError as exc:
+        db.session.rollback()
+        return error_response(str(exc), 400)
+    except IntegrityError:
+        db.session.rollback()
+        return error_response("email ya existe / FK invalida", 409)
+
+    return persona.to_dict(), 200
+
+
+@api_v1_bp.delete("/personas/<string:cedula>")
+@roles_required(1)
+def delete_persona(cedula: str):
+    persona = PersonaController.get_persona_by_cedula(cedula)
+    if persona is None:
+        return error_response("persona no encontrada", 404)
+
+    try:
+        PersonaController.delete_persona(persona)
+    except ValueError as exc:
+        db.session.rollback()
+        return error_response(str(exc), 409)
+    except IntegrityError:
+        db.session.rollback()
+        return error_response("persona en uso por otras tablas", 409)
+    return {"ok": True, "message": "persona eliminada"}, 200
+
+
+@api_v1_bp.get("/ordenes/<int:order_id>")
+@login_required
+def get_order(order_id: int):
+    order = OrderController.get_order_by_id(order_id)
+    if order is None:
+        return error_response("orden no encontrada", 404)
+
+    payload = order.to_dict(include_details=True)
+    payload["total"] = OrderController.calculate_total(order)
+    return payload, 200
+
+
+@api_v1_bp.post("/ordenes")
+@roles_required(1, 2)
+def create_order():
+    payload = request.get_json(silent=True) or {}
+
+    try:
+        order = OrderController.create_order(
+            id_cliente=payload.get("id_cliente"),
+            id_usuario=session["user"]["id_usuario"],
+            detalles=payload.get("detalles") or [],
+            estado=payload.get("estado", "Pendiente"),
+        )
+    except ValueError as exc:
+        db.session.rollback()
+        return error_response(str(exc), 400)
+    except IntegrityError:
+        db.session.rollback()
+        return error_response("no fue posible registrar la orden", 409)
+
+    response = order.to_dict(include_details=True)
+    response["total"] = OrderController.calculate_total(order)
+    return response, 201
+
+
 @api_v1_bp.get("/facturas")
+@login_required
 def list_facturas():
     facturas = Factura.query.all()
     return (
@@ -82,6 +248,84 @@ def list_facturas():
         ],
         200,
     )
+
+
+@api_v1_bp.get("/productos")
+@login_required
+def list_products():
+    products = ProductController.list_products()
+    return [product.to_dict() for product in products], 200
+
+
+@api_v1_bp.post("/productos")
+@roles_required(1)
+def create_product():
+    payload = request.get_json(silent=True) or {}
+    try:
+        product = ProductController.create_product(
+            nombre=payload.get("nombre"),
+            precio_actual=payload.get("precio_actual"),
+            stock=payload.get("stock"),
+            id_campania=payload.get("id_campania"),
+        )
+    except ValueError as exc:
+        db.session.rollback()
+        return error_response(str(exc), 400)
+    except IntegrityError:
+        db.session.rollback()
+        return error_response("campania invalida o datos duplicados", 409)
+
+    return product.to_dict(), 201
+
+
+@api_v1_bp.get("/productos/<int:product_id>")
+@login_required
+def get_product(product_id: int):
+    product = ProductController.get_product_by_id(product_id)
+    if product is None:
+        return error_response("producto no encontrado", 404)
+    return product.to_dict(), 200
+
+
+@api_v1_bp.put("/productos/<int:product_id>")
+@roles_required(1)
+def update_product(product_id: int):
+    product = ProductController.get_product_by_id(product_id)
+    if product is None:
+        return error_response("producto no encontrado", 404)
+
+    payload = request.get_json(silent=True) or {}
+    allowed_fields = {"nombre", "precio_actual", "stock", "id_campania"}
+    update_fields = {k: v for k, v in payload.items() if k in allowed_fields}
+    if not update_fields:
+        return error_response("no hay campos validos para actualizar", 400)
+
+    try:
+        updated = ProductController.update_product(product, **update_fields)
+    except ValueError as exc:
+        db.session.rollback()
+        return error_response(str(exc), 400)
+    except IntegrityError:
+        db.session.rollback()
+        return error_response("campania invalida", 409)
+
+    return updated.to_dict(), 200
+
+
+@api_v1_bp.delete("/productos/<int:product_id>")
+@roles_required(1)
+def delete_product(product_id: int):
+    product = ProductController.get_product_by_id(product_id)
+    if product is None:
+        return error_response("producto no encontrado", 404)
+
+    try:
+        ProductController.delete_product(product)
+    except IntegrityError:
+        db.session.rollback()
+        return error_response("producto en uso por otras tablas", 409)
+
+    return {"ok": True, "message": "producto eliminado"}, 200
 
 
 @api_v1_bp.get("/usuario")

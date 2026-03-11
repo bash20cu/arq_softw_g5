@@ -24,13 +24,19 @@ INSERT INTO Rol (id_rol, nombre_rol) VALUES
   (4, 'Cliente');
 
 INSERT INTO Provincia (id_provincia, nombre) VALUES
-  (1, 'San Jose');
+  (1, 'San Jose'),
+  (2, 'Alajuela'),
+  (3, 'Cartago');
 
 INSERT INTO Canton (id_canton, id_provincia, nombre) VALUES
-  (101, 1, 'Central');
+  (101, 1, 'Central'),
+  (201, 2, 'Central'),
+  (301, 3, 'Central');
 
 INSERT INTO Distrito (id_distrito, id_canton, nombre) VALUES
-  (10101, 101, 'Catedral');
+  (10101, 101, 'Catedral'),
+  (20101, 201, 'Alajuela'),
+  (30101, 301, 'Oriental');
 
 INSERT INTO Persona (cedula, nombre, apellido, email, telefono, id_distrito) VALUES
   ('101110111', 'Miguel', 'Admin', 'miguel.admin@enviosg5.com', '88880001', 10101),

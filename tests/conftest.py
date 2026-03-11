@@ -14,9 +14,11 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from app.database import db
-from app.models.order import Order
+from app.models.catalog import Canton, Distrito, Provincia, Role
+from app.models.order import Order, OrderDetail
+from app.models.product import Product
 from app.models.support_case import SupportCase
-from app.models.user import Persona, User
+from app.models.user import Cliente, Persona, User
 from app.routes.api_v1 import api_v1_bp
 
 load_dotenv()
@@ -47,6 +49,14 @@ def app(tmp_path: Path):
     with app.app_context():
         db.create_all()
 
+        db.session.add(Role(id_rol=1, nombre_rol="Admin"))
+        db.session.add(Role(id_rol=2, nombre_rol="Vendedor"))
+        db.session.add(Role(id_rol=3, nombre_rol="Soporte"))
+        db.session.add(Role(id_rol=4, nombre_rol="Cliente"))
+        db.session.add(Provincia(id_provincia=1, nombre="San Jose"))
+        db.session.add(Canton(id_canton=101, id_provincia=1, nombre="Central"))
+        db.session.add(Distrito(id_distrito=10101, id_canton=101, nombre="Catedral"))
+
         db.session.add(
             Persona(
                 cedula="101110111",
@@ -54,6 +64,7 @@ def app(tmp_path: Path):
                 apellido="Admin",
                 email="miguel_admin_test@enviosg5.com",
                 telefono="88880001",
+                id_distrito=10101,
             )
         )
         db.session.add(
@@ -63,6 +74,7 @@ def app(tmp_path: Path):
                 apellido="Vargas",
                 email="carlo_ventas_test@enviosg5.com",
                 telefono="88880002",
+                id_distrito=10101,
             )
         )
         db.session.add(
@@ -72,6 +84,7 @@ def app(tmp_path: Path):
                 apellido="Campos",
                 email="laura_campos_test@enviosg5.com",
                 telefono="88880004",
+                id_distrito=10101,
             )
         )
         db.session.add(
@@ -81,6 +94,7 @@ def app(tmp_path: Path):
                 apellido="User",
                 email="qa_user_test@enviosg5.com",
                 telefono="88880005",
+                id_distrito=10101,
             )
         )
         db.session.add(
@@ -90,6 +104,7 @@ def app(tmp_path: Path):
                 apellido="Update",
                 email="before_update_test@enviosg5.com",
                 telefono="88880006",
+                id_distrito=10101,
             )
         )
         db.session.add(
@@ -99,6 +114,7 @@ def app(tmp_path: Path):
                 apellido="Delete",
                 email="to_delete_test@enviosg5.com",
                 telefono="88880007",
+                id_distrito=10101,
             )
         )
         db.session.add(
@@ -108,6 +124,7 @@ def app(tmp_path: Path):
                 apellido="Publico",
                 email="nuevo_publico_test@enviosg5.com",
                 telefono="88880009",
+                id_distrito=10101,
             )
         )
 
@@ -129,13 +146,78 @@ def app(tmp_path: Path):
                 activo=True,
             )
         )
+        db.session.add_all(
+            [
+                Cliente(id_cliente=1, cedula_persona="202220222"),
+                Cliente(id_cliente=2, cedula_persona="909990999"),
+            ]
+        )
 
         db.session.add_all(
             [
-                Order(estado="Pendiente"),
-                Order(estado="Pendiente"),
-                Order(estado="Enviado"),
-                Order(estado="Procesado"),
+                Product(
+                    id_producto=1,
+                    nombre="Envio Nacional Estandar",
+                    precio_actual=3500.00,
+                    stock=500,
+                    id_campania=None,
+                ),
+                Product(
+                    id_producto=2,
+                    nombre="Envio Internacional Express",
+                    precio_actual=18500.00,
+                    stock=120,
+                    id_campania=None,
+                ),
+                Product(
+                    id_producto=3,
+                    nombre="Seguro Premium",
+                    precio_actual=2500.00,
+                    stock=50,
+                    id_campania=None,
+                ),
+            ]
+        )
+
+        db.session.add_all(
+            [
+                Order(id_orden=1, id_cliente=1, id_usuario=2, estado="Pendiente"),
+                Order(id_orden=2, id_cliente=1, id_usuario=2, estado="Pendiente"),
+                Order(id_orden=3, id_cliente=1, id_usuario=2, estado="Enviado"),
+                Order(id_orden=4, id_cliente=1, id_usuario=2, estado="Procesado"),
+            ]
+        )
+
+        db.session.add_all(
+            [
+                OrderDetail(
+                    id_detalle=1,
+                    id_orden=1,
+                    id_producto=1,
+                    cantidad=1,
+                    precio_venta=3500.00,
+                ),
+                OrderDetail(
+                    id_detalle=2,
+                    id_orden=2,
+                    id_producto=2,
+                    cantidad=1,
+                    precio_venta=18500.00,
+                ),
+                OrderDetail(
+                    id_detalle=3,
+                    id_orden=3,
+                    id_producto=1,
+                    cantidad=2,
+                    precio_venta=3500.00,
+                ),
+                OrderDetail(
+                    id_detalle=4,
+                    id_orden=4,
+                    id_producto=3,
+                    cantidad=2,
+                    precio_venta=2500.00,
+                ),
             ]
         )
 

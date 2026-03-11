@@ -45,6 +45,28 @@ def run_sql_file(server_uri: str, sql_file: Path, db_name: str | None = None) ->
             conn.exec_driver_sql(stmt)
 
 
+def _ensure_catalogs_seeded(server_uri: str, db_name: str, catalog_seed_path: Path) -> None:
+    engine = create_engine(server_uri)
+    with engine.begin() as conn:
+        roles_count = conn.execute(
+            text(f"SELECT COUNT(*) FROM `{db_name}`.`Rol`")
+        ).scalar() or 0
+        provincias_count = conn.execute(
+            text(f"SELECT COUNT(*) FROM `{db_name}`.`Provincia`")
+        ).scalar() or 0
+        cantones_count = conn.execute(
+            text(f"SELECT COUNT(*) FROM `{db_name}`.`Canton`")
+        ).scalar() or 0
+        distritos_count = conn.execute(
+            text(f"SELECT COUNT(*) FROM `{db_name}`.`Distrito`")
+        ).scalar() or 0
+
+    if min(roles_count, provincias_count, cantones_count, distritos_count) > 0:
+        return
+
+    run_sql_file(server_uri, catalog_seed_path, db_name=db_name)
+
+
 def bootstrap_database(
     *,
     db_user: str,
@@ -54,13 +76,15 @@ def bootstrap_database(
     db_name: str,
 ) -> None:
     server_uri = _build_server_uri(db_user, db_password, db_host, db_port)
-    if _database_exists(server_uri, db_name):
-        return
-
     root_dir = Path(__file__).resolve().parents[1]
     sql_dir = root_dir / "app" / "models"
     schema_path = sql_dir / "schema.sql"
     seed_path = sql_dir / "seed.sql"
+    catalog_seed_path = sql_dir / "catalog_seed.sql"
 
-    run_sql_file(server_uri, schema_path, db_name=db_name)
-    run_sql_file(server_uri, seed_path, db_name=db_name)
+    if not _database_exists(server_uri, db_name):
+        run_sql_file(server_uri, schema_path, db_name=db_name)
+        run_sql_file(server_uri, seed_path, db_name=db_name)
+        return
+
+    _ensure_catalogs_seeded(server_uri, db_name, catalog_seed_path)

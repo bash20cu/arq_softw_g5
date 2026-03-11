@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Nueva Orden — ShopEasy CRM{% endblock %}
+{% block page_title %}Generar Orden de Compra{% endblock %}
+{% block breadcrumb %}
+  <li class="breadcrumb-item"><a href="/ordenes/" class="text-decoration-none">Órdenes</a></li>
+  <li class="breadcrumb-item active">Nueva Orden</li>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-xl-9">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+        <h6 class="mb-0 fw-semibold"><i class="bi bi-cart-plus text-success me-2"></i>Registrar orden</h6>
+        <span class="badge bg-warning-subtle text-warning">Estado inicial: Pendiente</span>
+      </div>
+      <div class="card-body p-4">
+        <form method="POST" id="ordenForm">
+          <div class="row g-3 mb-4">
+            <div class="col-lg-6">
+              <label class="form-label fw-medium">Cliente <span class="text-danger">*</span></label>
+              <select name="id_cliente" class="form-select" required>
+                <option value="">Seleccionar cliente...</option>
+                {% for cliente in clientes %}
+                <option value="{{ cliente.id_cliente }}" {% if order_data.id_cliente == cliente.id_cliente %}selected{% endif %}>
+                  Cliente #{{ cliente.id_cliente }} · {{ cliente.cedula_persona }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0 fw-semibold">Detalle de productos</h6>
+            <button type="button" class="btn btn-outline-primary btn-sm" onclick="agregarLineaOrden()">
+              <i class="bi bi-plus-circle me-1"></i>Agregar línea
+            </button>
+          </div>
+
+          <div id="lineasOrden">
+            {% set detalles = order_data.detalles if order_data.detalles else [{}] %}
+            {% for detalle in detalles %}
+            <div class="row g-3 align-items-end border rounded-3 p-3 mb-3 linea-orden">
+              <div class="col-md-6">
+                <label class="form-label fw-medium">Producto</label>
+                <select name="id_producto" class="form-select producto-select" onchange="actualizarResumenOrden()">
+                  <option value="">Seleccionar producto...</option>
+                  {% for producto in productos %}
+                  <option value="{{ producto.id_producto }}" data-precio="{{ producto.precio_actual }}" {% if detalle.id_producto == producto.id_producto %}selected{% endif %}>
+                    {{ producto.nombre }} · Stock {{ producto.stock }} · Q {{ '%.2f'|format(producto.precio_actual) }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label fw-medium">Cantidad</label>
+                <input type="number" min="1" name="cantidad" class="form-control cantidad-input" value="{{ detalle.cantidad or 1 }}" oninput="actualizarResumenOrden()">
+              </div>
+              <div class="col-md-2">
+                <label class="form-label fw-medium">Subtotal</label>
+                <input type="text" class="form-control subtotal-linea" value="Q 0.00" readonly>
+              </div>
+              <div class="col-md-1">
+                <button type="button" class="btn btn-outline-danger w-100" onclick="eliminarLineaOrden(this)">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+
+          <div class="card bg-light border-0 mt-4">
+            <div class="card-body d-flex justify-content-between align-items-center">
+              <div>
+                <div class="text-muted small">Total estimado</div>
+                <div class="h4 mb-0" id="ordenTotal">Q 0.00</div>
+              </div>
+              <div class="d-flex gap-2">
+                <a href="/ordenes/" class="btn btn-secondary">Cancelar</a>
+                <button type="submit" class="btn btn-success">
+                  <i class="bi bi-check2-circle me-1"></i>Guardar orden
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<template id="lineaOrdenTemplate">
+  <div class="row g-3 align-items-end border rounded-3 p-3 mb-3 linea-orden">
+    <div class="col-md-6">
+      <label class="form-label fw-medium">Producto</label>
+      <select name="id_producto" class="form-select producto-select" onchange="actualizarResumenOrden()">
+        <option value="">Seleccionar producto...</option>
+        {% for producto in productos %}
+        <option value="{{ producto.id_producto }}" data-precio="{{ producto.precio_actual }}">
+          {{ producto.nombre }} · Stock {{ producto.stock }} · Q {{ '%.2f'|format(producto.precio_actual) }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label fw-medium">Cantidad</label>
+      <input type="number" min="1" name="cantidad" class="form-control cantidad-input" value="1" oninput="actualizarResumenOrden()">
+    </div>
+    <div class="col-md-2">
+      <label class="form-label fw-medium">Subtotal</label>
+      <input type="text" class="form-control subtotal-linea" value="Q 0.00" readonly>
+    </div>
+    <div class="col-md-1">
+      <button type="button" class="btn btn-outline-danger w-100" onclick="eliminarLineaOrden(this)">
+        <i class="bi bi-trash"></i>
+      </button>
+    </div>
+  </div>
+</template>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/ordenes-form.js') }}"></script>
+{% endblock %}

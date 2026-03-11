@@ -1,3 +1,6 @@
+from app.database import db
+from app.models.order import Order
+from app.models.product import Product
 from app.models.user import User
 
 
@@ -220,3 +223,180 @@ def test_delete_user_success(client):
 
     assert delete_response.status_code == 200
     assert get_response.status_code == 404
+
+
+def test_products_requires_login(client):
+    response = client.get("/api/v1/productos")
+    assert response.status_code == 401
+
+
+def test_list_products_success(client):
+    _login(client)
+    response = client.get("/api/v1/productos")
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert isinstance(data, list)
+    assert data[0]["nombre"] == "Envio Nacional Estandar"
+
+
+def test_create_product_requires_admin_role(client):
+    client.post(
+        "/api/v1/auth/verificar",
+        json={"username": "carlo_ventas", "password": "ventas123"},
+    )
+    response = client.post(
+        "/api/v1/productos",
+        json={"nombre": "Caja Plus", "precio_actual": 125.50, "stock": 10},
+    )
+    assert response.status_code == 403
+
+
+def test_create_product_success(client):
+    _login(client)
+    response = client.post(
+        "/api/v1/productos",
+        json={"nombre": "Caja Plus", "precio_actual": 125.50, "stock": 10},
+    )
+    data = response.get_json()
+
+    assert response.status_code == 201
+    assert data["nombre"] == "Caja Plus"
+
+    with client.application.app_context():
+        stored = Product.query.filter_by(nombre="Caja Plus").first()
+        assert stored is not None
+        assert stored.stock == 10
+
+
+def test_create_product_rejects_invalid_price(client):
+    _login(client)
+    response = client.post(
+        "/api/v1/productos",
+        json={"nombre": "Caja Error", "precio_actual": 0, "stock": 10},
+    )
+    assert response.status_code == 400
+
+
+def test_create_order_success_updates_stock(client):
+    client.post(
+        "/api/v1/auth/verificar",
+        json={"username": "carlo_ventas", "password": "ventas123"},
+    )
+    response = client.post(
+        "/api/v1/ordenes",
+        json={
+            "id_cliente": 1,
+            "detalles": [
+                {"id_producto": 1, "cantidad": 2},
+                {"id_producto": 3, "cantidad": 1},
+            ],
+        },
+    )
+    data = response.get_json()
+
+    assert response.status_code == 201
+    assert data["estado"] == "Pendiente"
+    assert len(data["detalles"]) == 2
+    assert data["total"] == 9500.0
+
+    with client.application.app_context():
+        order = db.session.get(Order, data["id_orden"])
+        product = db.session.get(Product, 1)
+        assert order is not None
+        assert len(order.detalles) == 2
+        assert product.stock == 498
+
+
+def test_create_order_rejects_insufficient_stock(client):
+    client.post(
+        "/api/v1/auth/verificar",
+        json={"username": "carlo_ventas", "password": "ventas123"},
+    )
+    response = client.post(
+        "/api/v1/ordenes",
+        json={"id_cliente": 1, "detalles": [{"id_producto": 2, "cantidad": 9999}]},
+    )
+    assert response.status_code == 400
+
+
+def test_get_order_detail_success(client):
+    _login(client)
+    response = client.get("/api/v1/ordenes/1")
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert data["id_orden"] == 1
+    assert len(data["detalles"]) == 1
+
+
+def test_list_catalogs_distritos_success(client):
+    _login(client)
+    response = client.get("/api/v1/catalogos/distritos")
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert data[0]["id_distrito"] == 10101
+
+
+def test_list_personas_success(client):
+    _login(client)
+    response = client.get("/api/v1/personas")
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert isinstance(data, list)
+    assert any(item["cedula"] == "101110111" for item in data)
+
+
+def test_create_persona_success(client):
+    _login(client)
+    response = client.post(
+        "/api/v1/personas",
+        json={
+            "cedula": "808880888",
+            "nombre": "Persona",
+            "apellido": "Nueva",
+            "email": "persona_nueva_test@enviosg5.com",
+            "telefono": "88889999",
+            "id_distrito": 10101,
+        },
+    )
+    data = response.get_json()
+
+    assert response.status_code == 201
+    assert data["cedula"] == "808880888"
+
+
+def test_create_persona_rejects_duplicate_email(client):
+    _login(client)
+    response = client.post(
+        "/api/v1/personas",
+        json={
+            "cedula": "818881888",
+            "nombre": "Persona",
+            "apellido": "Duplicada",
+            "email": "miguel_admin_test@enviosg5.com",
+            "id_distrito": 10101,
+        },
+    )
+    assert response.status_code == 409
+
+
+def test_update_persona_success(client):
+    _login(client)
+    response = client.put(
+        "/api/v1/personas/101110111",
+        json={"telefono": "70000000", "nombre": "Miguelito"},
+    )
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert data["telefono"] == "70000000"
+    assert data["nombre"] == "Miguelito"
+
+
+def test_delete_persona_in_use_returns_conflict(client):
+    _login(client)
+    response = client.delete("/api/v1/personas/101110111")
+    assert response.status_code == 409
