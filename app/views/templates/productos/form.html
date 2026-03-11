@@ -45,10 +45,17 @@
               </div>
             </div>
             <div class="col-md-6">
-              <label class="form-label fw-medium">ID Campaña</label>
+              <label class="form-label fw-medium">Campaña</label>
               <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-megaphone"></i></span>
-                <input type="number" min="1" name="id_campania" class="form-control" value="{{ producto.id_campania or '' }}">
+                <select name="id_campania" class="form-select">
+                  <option value="">Sin campaña</option>
+                  {% for campania in campanias %}
+                  <option value="{{ campania.id_campania }}" {% if producto.id_campania == campania.id_campania %}selected{% endif %}>
+                    {{ campania.nombre }}
+                  </option>
+                  {% endfor %}
+                </select>
               </div>
             </div>
           </div>

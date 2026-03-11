@@ -4,6 +4,7 @@ from flask import Blueprint, request, session
 from sqlalchemy.exc import IntegrityError
 
 from app.controllers.auth_controller import AuthController
+from app.controllers.campaign_controller import CampaignController
 from app.controllers.menu_controller import MenuController
 from app.controllers.order_controller import OrderController
 from app.controllers.persona_controller import PersonaController
@@ -91,28 +92,100 @@ def list_ordenes():
     )
 
 
-@api_v1_bp.get("/catalogos/roles")
+@api_v1_bp.get("/campanias")
 @login_required
+def list_campaigns():
+    campanias = CampaignController.list_campaigns()
+    return [campania.to_dict() for campania in campanias], 200
+
+
+@api_v1_bp.get("/campanias/<int:campaign_id>")
+@login_required
+def get_campaign(campaign_id: int):
+    campaign = CampaignController.get_campaign_by_id(campaign_id)
+    if campaign is None:
+        return error_response("campania no encontrada", 404)
+    return campaign.to_dict(), 200
+
+
+@api_v1_bp.post("/campanias")
+@roles_required(1)
+def create_campaign():
+    payload = request.get_json(silent=True) or {}
+    try:
+        campania = CampaignController.create_campaign(
+            nombre=payload.get("nombre"),
+            fecha_inicio=payload.get("fecha_inicio"),
+            fecha_fin=payload.get("fecha_fin"),
+            descripcion=payload.get("descripcion"),
+        )
+    except ValueError as exc:
+        db.session.rollback()
+        return error_response(str(exc), 400)
+    except IntegrityError:
+        db.session.rollback()
+        return error_response("no fue posible registrar la campania", 409)
+    return campania.to_dict(), 201
+
+
+@api_v1_bp.put("/campanias/<int:campaign_id>")
+@roles_required(1)
+def update_campaign(campaign_id: int):
+    campaign = CampaignController.get_campaign_by_id(campaign_id)
+    if campaign is None:
+        return error_response("campania no encontrada", 404)
+
+    payload = request.get_json(silent=True) or {}
+    allowed_fields = {"nombre", "fecha_inicio", "fecha_fin", "descripcion"}
+    update_fields = {k: v for k, v in payload.items() if k in allowed_fields}
+    if not update_fields:
+        return error_response("no hay campos validos para actualizar", 400)
+
+    try:
+        updated = CampaignController.update_campaign(campaign, **update_fields)
+    except ValueError as exc:
+        db.session.rollback()
+        return error_response(str(exc), 400)
+    except IntegrityError:
+        db.session.rollback()
+        return error_response("no fue posible actualizar la campania", 409)
+    return updated.to_dict(), 200
+
+
+@api_v1_bp.delete("/campanias/<int:campaign_id>")
+@roles_required(1)
+def delete_campaign(campaign_id: int):
+    campaign = CampaignController.get_campaign_by_id(campaign_id)
+    if campaign is None:
+        return error_response("campania no encontrada", 404)
+    try:
+        CampaignController.delete_campaign(campaign)
+    except IntegrityError:
+        db.session.rollback()
+        return error_response("campania en uso por otras tablas", 409)
+    return {"ok": True, "message": "campania eliminada"}, 200
+
+
+@api_v1_bp.get("/catalogos/roles")
 def list_roles():
     return [role.to_dict() for role in PersonaController.list_roles()], 200
 
 
 @api_v1_bp.get("/catalogos/provincias")
-@login_required
 def list_provincias():
     return [provincia.to_dict() for provincia in PersonaController.list_provincias()], 200
 
 
 @api_v1_bp.get("/catalogos/cantones")
-@login_required
 def list_cantones():
-    return [canton.to_dict() for canton in PersonaController.list_cantones()], 200
+    provincia_id = request.args.get("provincia_id", type=int)
+    return [canton.to_dict() for canton in PersonaController.list_cantones(provincia_id)], 200
 
 
 @api_v1_bp.get("/catalogos/distritos")
-@login_required
 def list_distritos():
-    return [distrito.to_dict() for distrito in PersonaController.list_distritos()], 200
+    canton_id = request.args.get("canton_id", type=int)
+    return [distrito.to_dict() for distrito in PersonaController.list_distritos(canton_id)], 200
 
 
 @api_v1_bp.get("/personas")

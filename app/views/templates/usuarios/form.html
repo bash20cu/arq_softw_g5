@@ -39,13 +39,19 @@
 
             <!-- Cédula -->
             <div class="col-md-6">
-              <label class="form-label fw-medium">Cédula <span class="text-danger">*</span></label>
+              <label class="form-label fw-medium">Persona <span class="text-danger">*</span></label>
               <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-card-text"></i></span>
-                <input type="text" name="cedula_persona" class="form-control"
-                       value="{{ usuario.cedula_persona or '' }}"
-                       placeholder="ej. 0102030405" required maxlength="20">
+                <span class="input-group-text"><i class="bi bi-person-vcard"></i></span>
+                <select name="cedula_persona" class="form-select" required>
+                  <option value="">Seleccionar persona...</option>
+                  {% for persona in personas %}
+                  <option value="{{ persona.cedula }}" {% if usuario.cedula_persona == persona.cedula %}selected{% endif %}>
+                    {{ persona.nombre }} {{ persona.apellido }} · {{ persona.cedula }}
+                  </option>
+                  {% endfor %}
+                </select>
               </div>
+              <div class="form-text">Solo se muestran personas disponibles o la asignada al usuario actual.</div>
             </div>
 
             <!-- Contraseña -->
@@ -71,10 +77,9 @@
                 <span class="input-group-text"><i class="bi bi-shield"></i></span>
                 <select name="id_rol" class="form-select" required>
                   <option value="">Seleccionar rol...</option>
-                  <option value="1" {% if usuario.id_rol == 1 %}selected{% endif %}>Administrador</option>
-                  <option value="2" {% if usuario.id_rol == 2 %}selected{% endif %}>Vendedor</option>
-                  <option value="3" {% if usuario.id_rol == 3 %}selected{% endif %}>Soporte</option>
-                  <option value="4" {% if usuario.id_rol == 4 %}selected{% endif %}>Cliente</option>
+                  {% for rol in roles %}
+                  <option value="{{ rol.id_rol }}" {% if usuario.id_rol == rol.id_rol %}selected{% endif %}>{{ rol.nombre_rol }}</option>
+                  {% endfor %}
                 </select>
               </div>
             </div>
@@ -116,7 +121,7 @@
     <div class="alert alert-info border-0 mt-3 small">
       <i class="bi bi-info-circle me-1"></i>
       Los campos marcados con <strong class="text-danger">*</strong> son obligatorios.
-      La cédula debe corresponder a una persona registrada.
+      El usuario debe vincularse a una persona ya registrada.
     </div>
 
   </div>

@@ -58,7 +58,8 @@ INSERT INTO Cliente (id_cliente, cedula_persona, puntos_lealtad, estado_cliente)
   (2, '303330333', 25, 'Activo');
 
 INSERT INTO Campania (id_campania, nombre, fecha_inicio, fecha_fin, descripcion) VALUES
-  (1, 'Promo Envio Express', '2026-02-01', '2026-03-15', 'Descuento para envios urgentes.');
+  (1, 'Promo Envio Express', '2026-02-01', '2026-03-15', 'Descuento para envios urgentes.'),
+  (2, 'Temporada Escolar', '2026-03-01', '2026-04-30', 'Campaña comercial para paquetes escolares.');
 
 INSERT INTO Campania_Envio (id_envio, id_campania, cedula_persona, medio_envio, exitoso) VALUES
   (1, 1, '202220222', 'Email', TRUE),
@@ -66,7 +67,7 @@ INSERT INTO Campania_Envio (id_envio, id_campania, cedula_persona, medio_envio, 
 
 INSERT INTO Producto (id_producto, nombre, precio_actual, stock, id_campania) VALUES
   (1, 'Envio Nacional Estandar', 3500.00, 500, 1),
-  (2, 'Envio Internacional Express', 18500.00, 120, NULL);
+  (2, 'Envio Internacional Express', 18500.00, 120, 2);
 
 INSERT INTO Orden_Compra (id_orden, id_cliente, id_usuario, estado) VALUES
   (1, 1, 2, 'Procesado');

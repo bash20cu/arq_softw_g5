@@ -50,7 +50,7 @@ class MenuController:
                     "id": "campanias",
                     "nombre": "Campanias",
                     "descripcion": "Promociones y comunicacion comercial.",
-                    "ruta_front": "/principal/campanias",
+                    "ruta_front": "/campanias/",
                 },
                 {
                     "id": "soporte",

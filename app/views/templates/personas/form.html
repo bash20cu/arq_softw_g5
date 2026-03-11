@@ -59,16 +59,34 @@
               </div>
             </div>
             <div class="col-md-6">
+              <label class="form-label fw-medium">Provincia</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-map"></i></span>
+                <select id="provinciaSelect" class="form-select" data-selected="{{ location.id_provincia or '' }}">
+                  <option value="">Seleccionar provincia...</option>
+                  {% for provincia in provincias %}
+                  <option value="{{ provincia.id_provincia }}" {% if location.id_provincia == provincia.id_provincia %}selected{% endif %}>
+                    {{ provincia.nombre }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Cantón</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-signpost"></i></span>
+                <select id="cantonSelect" class="form-select" data-selected="{{ location.id_canton or '' }}">
+                  <option value="">Seleccionar cantón...</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
               <label class="form-label fw-medium">Distrito</label>
               <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
-                <select name="id_distrito" class="form-select">
+                <select name="id_distrito" id="distritoSelect" class="form-select" data-selected="{{ location.id_distrito or '' }}">
                   <option value="">Sin distrito</option>
-                  {% for distrito in distritos %}
-                  <option value="{{ distrito.id_distrito }}" {% if persona.id_distrito == distrito.id_distrito %}selected{% endif %}>
-                    {{ distrito.id_distrito }} · {{ distrito.nombre }}
-                  </option>
-                  {% endfor %}
                 </select>
               </div>
             </div>
@@ -93,4 +111,8 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/personas-form.js') }}"></script>
 {% endblock %}

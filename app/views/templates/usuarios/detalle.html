@@ -61,13 +61,16 @@
               <td class="fw-semibold">{{ usuario.username }}</td>
             </tr>
             <tr class="border-bottom">
-              <td class="ps-4 text-muted fw-medium">Cédula</td>
-              <td><code>{{ usuario.cedula_persona or '—' }}</code></td>
+              <td class="ps-4 text-muted fw-medium">Persona vinculada</td>
+              <td>
+                <div class="fw-semibold">{{ usuario.persona.nombre ~ ' ' ~ usuario.persona.apellido if usuario.persona else '—' }}</div>
+                <div><code>{{ usuario.cedula_persona or '—' }}</code></div>
+              </td>
             </tr>
             <tr class="border-bottom">
               <td class="ps-4 text-muted fw-medium">Rol</td>
               <td>
-                <span class="badge bg-primary bg-opacity-10 text-primary">Rol {{ usuario.id_rol }}</span>
+                <span class="badge bg-primary bg-opacity-10 text-primary">{{ usuario.rol.nombre_rol if usuario.rol else ('Rol ' ~ usuario.id_rol) }}</span>
               </td>
             </tr>
             <tr>

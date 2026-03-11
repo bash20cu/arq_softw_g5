@@ -1,4 +1,4 @@
-from app.models.user import User
+from app.models.user import Persona, User
 from werkzeug.security import check_password_hash, generate_password_hash
 
 
@@ -18,6 +18,16 @@ class UserController:
         return User.query.order_by(User.id_usuario.asc()).all()
 
     @staticmethod
+    def list_personas_for_user(current_cedula: str | None = None) -> list[Persona]:
+        used_cedulas = {item.cedula_persona for item in User.query.all()}
+        query = Persona.query
+        if current_cedula:
+            used_cedulas.discard(current_cedula)
+        if used_cedulas:
+            query = query.filter(~Persona.cedula.in_(used_cedulas))
+        return query.order_by(Persona.nombre.asc(), Persona.apellido.asc()).all()
+
+    @staticmethod
     def create_user(
         cedula_persona: str,
         username: str,
@@ -25,6 +35,8 @@ class UserController:
         id_rol: int,
         activo: bool = True,
     ) -> User:
+        if Persona.query.filter_by(cedula=cedula_persona).first() is None:
+            raise ValueError("cedula_persona no existe en Persona")
         user = User(
             cedula_persona=cedula_persona,
             username=username,
@@ -50,6 +62,8 @@ class UserController:
     @staticmethod
     def update_user(user: User, **fields) -> User:
         if "cedula_persona" in fields:
+            if Persona.query.filter_by(cedula=fields["cedula_persona"]).first() is None:
+                raise ValueError("cedula_persona no existe en Persona")
             user.cedula_persona = fields["cedula_persona"]
         if "username" in fields:
             user.username = fields["username"]

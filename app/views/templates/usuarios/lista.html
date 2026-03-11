@@ -83,7 +83,7 @@
           <tr>
             <th class="ps-4" style="width:60px">#</th>
             <th>Usuario</th>
-            <th>Cédula</th>
+            <th>Persona</th>
             <th>Rol</th>
             <th>Estado</th>
             <th class="text-end pe-4">Acciones</th>
@@ -102,9 +102,12 @@
                 <span class="fw-medium">{{ u.username }}</span>
               </div>
             </td>
-            <td class="text-muted">{{ u.cedula_persona }}</td>
             <td>
-              <span class="badge bg-primary bg-opacity-10 text-primary">Rol {{ u.id_rol }}</span>
+              <div class="fw-medium">{{ u.persona.nombre ~ ' ' ~ u.persona.apellido if u.persona else '—' }}</div>
+              <div class="text-muted small">{{ u.cedula_persona }}</div>
+            </td>
+            <td>
+              <span class="badge bg-primary bg-opacity-10 text-primary">{{ u.rol.nombre_rol if u.rol else ('Rol ' ~ u.id_rol) }}</span>
             </td>
             <td>
               {% if u.activo %}

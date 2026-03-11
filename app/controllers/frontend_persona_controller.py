@@ -34,28 +34,48 @@ def crear_persona():
     if not _ensure_session():
         return redirect(url_for("main.login_page"))
 
-    distritos = PersonaController.list_distritos()
+    provincias = PersonaController.list_provincias()
     if request.method == "POST":
         data, form_errors = _parse_form(is_create=True)
         if form_errors:
             for msg in form_errors:
                 flash(msg, "error")
-            return PersonaView.render_form(data, distritos, "crear", "Nueva Persona")
+            return PersonaView.render_form(
+                data,
+                provincias,
+                PersonaController.get_location_selection(data.get("id_distrito")),
+                "crear",
+                "Nueva Persona",
+            )
 
         try:
             PersonaController.create_persona(**data)
         except ValueError as exc:
             flash(str(exc), "error")
-            return PersonaView.render_form(data, distritos, "crear", "Nueva Persona")
+            return PersonaView.render_form(
+                data,
+                provincias,
+                PersonaController.get_location_selection(data.get("id_distrito")),
+                "crear",
+                "Nueva Persona",
+            )
         except IntegrityError as exc:
             db.session.rollback()
             flash(f"Error al crear persona: {exc.orig}", "error")
-            return PersonaView.render_form(data, distritos, "crear", "Nueva Persona")
+            return PersonaView.render_form(
+                data,
+                provincias,
+                PersonaController.get_location_selection(data.get("id_distrito")),
+                "crear",
+                "Nueva Persona",
+            )
 
         flash("Persona creada exitosamente.", "success")
         return redirect(url_for("frontend_persona.personas_listar"))
 
-    return PersonaView.render_form({}, distritos, "crear", "Nueva Persona")
+    return PersonaView.render_form(
+        {}, provincias, {"id_provincia": None, "id_canton": None, "id_distrito": None}, "crear", "Nueva Persona"
+    )
 
 
 def editar_persona(cedula):
@@ -67,31 +87,59 @@ def editar_persona(cedula):
         flash("Persona no encontrada.", "error")
         return redirect(url_for("frontend_persona.personas_listar"))
 
-    distritos = PersonaController.list_distritos()
+    provincias = PersonaController.list_provincias()
     if request.method == "POST":
         data, form_errors = _parse_form(is_create=False)
         if form_errors:
             for msg in form_errors:
                 flash(msg, "error")
             data["cedula"] = cedula
-            return PersonaView.render_form(data, distritos, "editar", "Editar Persona", cedula)
+            return PersonaView.render_form(
+                data,
+                provincias,
+                PersonaController.get_location_selection(data.get("id_distrito")),
+                "editar",
+                "Editar Persona",
+                cedula,
+            )
 
         try:
             PersonaController.update_persona(persona, **data)
         except ValueError as exc:
             flash(str(exc), "error")
             data["cedula"] = cedula
-            return PersonaView.render_form(data, distritos, "editar", "Editar Persona", cedula)
+            return PersonaView.render_form(
+                data,
+                provincias,
+                PersonaController.get_location_selection(data.get("id_distrito")),
+                "editar",
+                "Editar Persona",
+                cedula,
+            )
         except IntegrityError as exc:
             db.session.rollback()
             flash(f"Error al actualizar persona: {exc.orig}", "error")
             data["cedula"] = cedula
-            return PersonaView.render_form(data, distritos, "editar", "Editar Persona", cedula)
+            return PersonaView.render_form(
+                data,
+                provincias,
+                PersonaController.get_location_selection(data.get("id_distrito")),
+                "editar",
+                "Editar Persona",
+                cedula,
+            )
 
         flash("Persona actualizada exitosamente.", "success")
         return redirect(url_for("frontend_persona.personas_listar"))
 
-    return PersonaView.render_form(persona, distritos, "editar", "Editar Persona", cedula)
+    return PersonaView.render_form(
+        persona,
+        provincias,
+        PersonaController.get_location_selection(persona.id_distrito),
+        "editar",
+        "Editar Persona",
+        cedula,
+    )
 
 
 def eliminar_persona(cedula):

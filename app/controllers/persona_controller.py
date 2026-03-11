@@ -69,12 +69,35 @@ class PersonaController:
         return Provincia.query.order_by(Provincia.id_provincia.asc()).all()
 
     @staticmethod
-    def list_cantones() -> list[Canton]:
-        return Canton.query.order_by(Canton.id_canton.asc()).all()
+    def list_cantones(id_provincia: int | None = None) -> list[Canton]:
+        query = Canton.query
+        if id_provincia is not None:
+            query = query.filter_by(id_provincia=id_provincia)
+        return query.order_by(Canton.id_canton.asc()).all()
 
     @staticmethod
-    def list_distritos() -> list[Distrito]:
-        return Distrito.query.order_by(Distrito.id_distrito.asc()).all()
+    def list_distritos(id_canton: int | None = None) -> list[Distrito]:
+        query = Distrito.query
+        if id_canton is not None:
+            query = query.filter_by(id_canton=id_canton)
+        return query.order_by(Distrito.id_distrito.asc()).all()
+
+    @staticmethod
+    def get_location_selection(id_distrito: int | None) -> dict:
+        if not id_distrito:
+            return {"id_provincia": None, "id_canton": None, "id_distrito": None}
+
+        distrito = Distrito.query.filter_by(id_distrito=id_distrito).first()
+        if distrito is None:
+            return {"id_provincia": None, "id_canton": None, "id_distrito": None}
+
+        canton = distrito.canton
+        provincia = canton.provincia if canton else None
+        return {
+            "id_provincia": provincia.id_provincia if provincia else None,
+            "id_canton": canton.id_canton if canton else None,
+            "id_distrito": distrito.id_distrito,
+        }
 
     @staticmethod
     def _require_text(value: str, field_name: str) -> str:

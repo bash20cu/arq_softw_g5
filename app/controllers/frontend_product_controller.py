@@ -41,6 +41,7 @@ def crear_producto():
     if not _require_admin():
         flash("No tienes permisos para registrar productos.", "error")
         return redirect(url_for("frontend_product.productos_listar"))
+    campanias = ProductController.list_campaigns()
 
     if request.method == "POST":
         data, form_errors = _parse_form()
@@ -51,6 +52,7 @@ def crear_producto():
                 producto=data,
                 action="crear",
                 title="Nuevo Producto",
+                campanias=campanias,
             )
 
         try:
@@ -61,6 +63,7 @@ def crear_producto():
                 producto=data,
                 action="crear",
                 title="Nuevo Producto",
+                campanias=campanias,
             )
         except IntegrityError as exc:
             db.session.rollback()
@@ -69,12 +72,13 @@ def crear_producto():
                 producto=data,
                 action="crear",
                 title="Nuevo Producto",
+                campanias=campanias,
             )
 
         flash("Producto creado exitosamente.", "success")
         return redirect(url_for("frontend_product.productos_listar"))
 
-    return ProductView.render_form(producto={}, action="crear", title="Nuevo Producto")
+    return ProductView.render_form(producto={}, action="crear", title="Nuevo Producto", campanias=campanias)
 
 
 def editar_producto(producto_id):
@@ -89,6 +93,8 @@ def editar_producto(producto_id):
         flash("Producto no encontrado.", "error")
         return redirect(url_for("frontend_product.productos_listar"))
 
+    campanias = ProductController.list_campaigns()
+
     if request.method == "POST":
         data, form_errors = _parse_form()
         if form_errors:
@@ -98,6 +104,7 @@ def editar_producto(producto_id):
                 producto=data,
                 action="editar",
                 title="Editar Producto",
+                campanias=campanias,
                 producto_id=producto_id,
             )
 
@@ -109,6 +116,7 @@ def editar_producto(producto_id):
                 producto=data,
                 action="editar",
                 title="Editar Producto",
+                campanias=campanias,
                 producto_id=producto_id,
             )
         except IntegrityError as exc:
@@ -118,6 +126,7 @@ def editar_producto(producto_id):
                 producto=data,
                 action="editar",
                 title="Editar Producto",
+                campanias=campanias,
                 producto_id=producto_id,
             )
 
@@ -128,6 +137,7 @@ def editar_producto(producto_id):
         producto=producto,
         action="editar",
         title="Editar Producto",
+        campanias=campanias,
         producto_id=producto_id,
     )
 

@@ -53,8 +53,14 @@
               <td>{{ persona.telefono or '—' }}</td>
             </tr>
             <tr>
-              <td class="ps-4 text-muted fw-medium">Distrito</td>
-              <td>{{ persona.id_distrito or '—' }}</td>
+              <td class="ps-4 text-muted fw-medium">Ubicación</td>
+              <td>
+                {% if persona.distrito %}
+                {{ persona.distrito.canton.provincia.nombre }} / {{ persona.distrito.canton.nombre }} / {{ persona.distrito.nombre }}
+                {% else %}
+                —
+                {% endif %}
+              </td>
             </tr>
           </tbody>
         </table>

@@ -1,5 +1,6 @@
 from decimal import Decimal, InvalidOperation
 
+from app.controllers.campaign_controller import CampaignController
 from app.database import db
 from app.models.product import Product
 
@@ -24,7 +25,7 @@ class ProductController:
             nombre=ProductController._validate_name(nombre),
             precio_actual=ProductController._validate_price(precio_actual),
             stock=ProductController._validate_stock(stock),
-            id_campania=id_campania,
+            id_campania=ProductController._validate_campaign(id_campania),
         )
         db.session.add(product)
         db.session.commit()
@@ -39,7 +40,7 @@ class ProductController:
         if "stock" in fields:
             product.stock = ProductController._validate_stock(fields["stock"])
         if "id_campania" in fields:
-            product.id_campania = fields["id_campania"]
+            product.id_campania = ProductController._validate_campaign(fields["id_campania"])
 
         db.session.add(product)
         db.session.commit()
@@ -76,3 +77,19 @@ class ProductController:
         if stock < 0:
             raise ValueError("stock no puede ser negativo")
         return stock
+
+    @staticmethod
+    def list_campaigns():
+        return CampaignController.list_campaigns()
+
+    @staticmethod
+    def _validate_campaign(value) -> int | None:
+        if value in (None, "", 0, "0"):
+            return None
+        try:
+            campaign_id = int(value)
+        except (TypeError, ValueError) as exc:
+            raise ValueError("id_campania debe ser numerico") from exc
+        if CampaignController.get_campaign_by_id(campaign_id) is None:
+            raise ValueError("id_campania no existe")
+        return campaign_id

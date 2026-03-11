@@ -93,7 +93,13 @@
             <td class="fw-medium">{{ p.nombre }} {{ p.apellido }}</td>
             <td>{{ p.email }}</td>
             <td>{{ p.telefono or '—' }}</td>
-            <td>{{ p.id_distrito or '—' }}</td>
+            <td>
+              {% if p.distrito %}
+              {{ p.distrito.canton.provincia.nombre }} / {{ p.distrito.canton.nombre }} / {{ p.distrito.nombre }}
+              {% else %}
+              —
+              {% endif %}
+            </td>
             <td class="text-end pe-4">
               <a href="/personas/{{ p.cedula }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-eye"></i></a>
               <a href="/personas/{{ p.cedula }}/editar" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil"></i></a>

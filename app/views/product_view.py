@@ -7,12 +7,13 @@ class ProductView:
         return render_template("productos/lista.html", productos=productos, error=error)
 
     @staticmethod
-    def render_form(producto, action, title, producto_id=None):
+    def render_form(producto, action, title, campanias, producto_id=None):
         return render_template(
             "productos/form.html",
             producto=producto,
             action=action,
             title=title,
+            campanias=campanias,
             producto_id=producto_id,
         )
 

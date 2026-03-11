@@ -31,11 +31,13 @@ class UserView:
         )
 
     @staticmethod
-    def render_form(usuario, action, title, usuario_id=None):
+    def render_form(usuario, action, title, personas, roles, usuario_id=None):
         return render_template(
             'usuarios/form.html',
             usuario=usuario,
             action=action,
             title=title,
-            usuario_id=usuario_id
+            usuario_id=usuario_id,
+            personas=personas,
+            roles=roles,
         )

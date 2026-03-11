@@ -1,5 +1,6 @@
 import os
 import sys
+from datetime import date
 from pathlib import Path
 
 import pymysql
@@ -15,6 +16,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from app.database import db
 from app.models.catalog import Canton, Distrito, Provincia, Role
+from app.models.campaign import Campaign
 from app.models.order import Order, OrderDetail
 from app.models.product import Product
 from app.models.support_case import SupportCase
@@ -155,19 +157,38 @@ def app(tmp_path: Path):
 
         db.session.add_all(
             [
+                Campaign(
+                    id_campania=1,
+                    nombre="Promo Envio Express",
+                    fecha_inicio=date(2026, 2, 1),
+                    fecha_fin=date(2026, 3, 15),
+                    descripcion="Descuento para envios urgentes.",
+                ),
+                Campaign(
+                    id_campania=2,
+                    nombre="Temporada Escolar",
+                    fecha_inicio=date(2026, 3, 1),
+                    fecha_fin=date(2026, 4, 30),
+                    descripcion="Campaña comercial para paquetes escolares.",
+                ),
+            ]
+        )
+
+        db.session.add_all(
+            [
                 Product(
                     id_producto=1,
                     nombre="Envio Nacional Estandar",
                     precio_actual=3500.00,
                     stock=500,
-                    id_campania=None,
+                    id_campania=1,
                 ),
                 Product(
                     id_producto=2,
                     nombre="Envio Internacional Express",
                     precio_actual=18500.00,
                     stock=120,
-                    id_campania=None,
+                    id_campania=2,
                 ),
                 Product(
                     id_producto=3,

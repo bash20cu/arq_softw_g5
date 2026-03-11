@@ -18,6 +18,12 @@ def test_health_public(client):
     assert response.get_json() == {"status": "ok"}
 
 
+def test_public_catalogs_are_available_without_session(client):
+    response = client.get("/api/v1/catalogos/provincias")
+    assert response.status_code == 200
+    assert isinstance(response.get_json(), list)
+
+
 def test_protected_endpoint_requires_session(client):
     # Esperado: middleware de auth bloquea sin cookie de sesion.
     response = client.get("/api/v1/usuario")
@@ -238,6 +244,17 @@ def test_list_products_success(client):
     assert response.status_code == 200
     assert isinstance(data, list)
     assert data[0]["nombre"] == "Envio Nacional Estandar"
+    assert data[0]["nombre_campania"] == "Promo Envio Express"
+
+
+def test_list_campaigns_success(client):
+    _login(client)
+    response = client.get("/api/v1/campanias")
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert len(data) >= 2
+    assert any(item["nombre"] == "Promo Envio Express" for item in data)
 
 
 def test_create_product_requires_admin_role(client):
@@ -256,12 +273,13 @@ def test_create_product_success(client):
     _login(client)
     response = client.post(
         "/api/v1/productos",
-        json={"nombre": "Caja Plus", "precio_actual": 125.50, "stock": 10},
+        json={"nombre": "Caja Plus", "precio_actual": 125.50, "stock": 10, "id_campania": 2},
     )
     data = response.get_json()
 
     assert response.status_code == 201
     assert data["nombre"] == "Caja Plus"
+    assert data["nombre_campania"] == "Temporada Escolar"
 
     with client.application.app_context():
         stored = Product.query.filter_by(nombre="Caja Plus").first()
@@ -274,6 +292,37 @@ def test_create_product_rejects_invalid_price(client):
     response = client.post(
         "/api/v1/productos",
         json={"nombre": "Caja Error", "precio_actual": 0, "stock": 10},
+    )
+    assert response.status_code == 400
+
+
+def test_create_campaign_success(client):
+    _login(client)
+    response = client.post(
+        "/api/v1/campanias",
+        json={
+            "nombre": "Cyber Week",
+            "fecha_inicio": "2026-05-01",
+            "fecha_fin": "2026-05-15",
+            "descripcion": "Campaña promocional de mayo",
+        },
+    )
+    data = response.get_json()
+    assert response.status_code == 201
+    assert data["nombre"] == "Cyber Week"
+
+
+def test_create_user_rejects_unknown_persona(client):
+    _login(client)
+    response = client.post(
+        "/api/v1/usuario",
+        json={
+            "cedula_persona": "000000000",
+            "username": "ghost_user",
+            "password_hash": "laura123",
+            "id_rol": 2,
+            "activo": True,
+        },
     )
     assert response.status_code == 400
 
@@ -337,6 +386,18 @@ def test_list_catalogs_distritos_success(client):
 
     assert response.status_code == 200
     assert data[0]["id_distrito"] == 10101
+
+
+def test_list_catalogs_filtered_success(client):
+    response = client.get("/api/v1/catalogos/cantones?provincia_id=1")
+    data = response.get_json()
+    assert response.status_code == 200
+    assert all(item["id_provincia"] == 1 for item in data)
+
+    response = client.get("/api/v1/catalogos/distritos?canton_id=101")
+    data = response.get_json()
+    assert response.status_code == 200
+    assert all(item["id_canton"] == 101 for item in data)
 
 
 def test_list_personas_success(client):

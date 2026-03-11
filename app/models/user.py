@@ -13,6 +13,8 @@ class Persona(db.Model):
     id_distrito = db.Column(db.Integer, db.ForeignKey("Distrito.id_distrito"), nullable=True)
     fecha_registro = db.Column(db.DateTime, nullable=True)
 
+    distrito = db.relationship("Distrito", lazy="joined")
+
     def save(self) -> None:
         db.session.add(self)
         db.session.commit()
@@ -41,6 +43,9 @@ class User(db.Model):
     id_rol = db.Column(db.Integer, db.ForeignKey("Rol.id_rol"), nullable=False)
     activo = db.Column(db.Boolean, default=True)
 
+    persona = db.relationship("Persona", lazy="joined")
+    rol = db.relationship("Role", lazy="joined")
+
     def set_password(self, password: str) -> None:
         """Genera y guarda el hash seguro de la contraseña."""
         self.password_hash = generate_password_hash(password)
@@ -59,6 +64,10 @@ class User(db.Model):
             "cedula_persona": self.cedula_persona,
             "username": self.username,
             "id_rol": self.id_rol,
+            "nombre_persona": (
+                f"{self.persona.nombre} {self.persona.apellido}" if self.persona else None
+            ),
+            "nombre_rol": self.rol.nombre_rol if self.rol else None,
             "activo": self.activo,
         }
 

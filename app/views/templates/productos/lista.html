@@ -94,7 +94,7 @@
                 {{ p.stock }} unidades
               </span>
             </td>
-            <td>{{ p.id_campania if p.id_campania else 'Sin campaña' }}</td>
+            <td>{{ p.campania.nombre if p.campania else 'Sin campaña' }}</td>
             <td class="text-end pe-4">
               <a href="/productos/{{ p.id_producto }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-eye"></i></a>
               <a href="/productos/{{ p.id_producto }}/editar" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil"></i></a>

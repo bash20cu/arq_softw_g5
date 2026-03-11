@@ -51,7 +51,7 @@
             </tr>
             <tr>
               <td class="ps-4 text-muted fw-medium">Campaña</td>
-              <td>{{ producto.id_campania if producto.id_campania else 'Sin campaña' }}</td>
+              <td>{{ producto.campania.nombre if producto.campania else 'Sin campaña' }}</td>
             </tr>
           </tbody>
         </table>

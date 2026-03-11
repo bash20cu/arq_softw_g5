@@ -1,6 +1,7 @@
 from flask import flash, redirect, request, session, url_for
 from sqlalchemy.exc import IntegrityError
 
+from app.controllers.persona_controller import PersonaController
 from app.controllers.user_controller import UserController
 from app.database import db
 from app.views.user_view import UserView
@@ -33,24 +34,53 @@ def detalle_usuario(usuario_id):
 def crear_usuario():
     if not _ensure_session():
         return redirect(url_for("main.login_page"))
+    personas = UserController.list_personas_for_user()
+    roles = PersonaController.list_roles()
     if request.method == "POST":
         data, form_errors = _parse_form(is_create=True)
         if form_errors:
             for msg in form_errors:
                 flash(msg, "error")
-            return UserView.render_form(usuario=data, action="crear", title="Nuevo Usuario")
+            return UserView.render_form(
+                usuario=data,
+                action="crear",
+                title="Nuevo Usuario",
+                personas=personas,
+                roles=roles,
+            )
 
         try:
             UserController.create_user(**data)
+        except ValueError as exc:
+            flash(str(exc), "error")
+            return UserView.render_form(
+                usuario=data,
+                action="crear",
+                title="Nuevo Usuario",
+                personas=personas,
+                roles=roles,
+            )
         except IntegrityError as exc:
             db.session.rollback()
             flash(f"Error al crear usuario: {exc.orig}", "error")
-            return UserView.render_form(usuario=data, action="crear", title="Nuevo Usuario")
+            return UserView.render_form(
+                usuario=data,
+                action="crear",
+                title="Nuevo Usuario",
+                personas=personas,
+                roles=roles,
+            )
 
         flash("Usuario creado exitosamente.", "success")
         return redirect(url_for("frontend.usuarios_listar"))
 
-    return UserView.render_form(usuario={}, action="crear", title="Nuevo Usuario")
+    return UserView.render_form(
+        usuario={},
+        action="crear",
+        title="Nuevo Usuario",
+        personas=personas,
+        roles=roles,
+    )
 
 
 def editar_usuario(usuario_id):
@@ -61,6 +91,9 @@ def editar_usuario(usuario_id):
         flash("Usuario no encontrado.", "error")
         return redirect(url_for("frontend.usuarios_listar"))
 
+    personas = UserController.list_personas_for_user(usuario.cedula_persona)
+    roles = PersonaController.list_roles()
+
     if request.method == "POST":
         data, form_errors = _parse_form(is_create=False)
         if form_errors:
@@ -70,11 +103,23 @@ def editar_usuario(usuario_id):
                 usuario=data,
                 action="editar",
                 title="Editar Usuario",
+                personas=personas,
+                roles=roles,
                 usuario_id=usuario_id,
             )
 
         try:
             UserController.update_user(usuario, **data)
+        except ValueError as exc:
+            flash(str(exc), "error")
+            return UserView.render_form(
+                usuario=data,
+                action="editar",
+                title="Editar Usuario",
+                personas=personas,
+                roles=roles,
+                usuario_id=usuario_id,
+            )
         except IntegrityError as exc:
             db.session.rollback()
             flash(f"Error al actualizar usuario: {exc.orig}", "error")
@@ -82,6 +127,8 @@ def editar_usuario(usuario_id):
                 usuario=data,
                 action="editar",
                 title="Editar Usuario",
+                personas=personas,
+                roles=roles,
                 usuario_id=usuario_id,
             )
 
@@ -92,6 +139,8 @@ def editar_usuario(usuario_id):
         usuario=usuario,
         action="editar",
         title="Editar Usuario",
+        personas=personas,
+        roles=roles,
         usuario_id=usuario_id,
     )
 

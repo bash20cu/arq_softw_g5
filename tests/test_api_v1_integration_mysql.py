@@ -97,7 +97,7 @@ def test_real_invalid_login(real_client):
 
 
 def test_real_create_user_validates_relationships_fk(real_client):
-    # Esperado: FK invalida (cedula_persona/id_rol inexistentes) devuelve 409.
+    # Esperado: relacion invalida detectada por validacion de app o por FK.
     _login(real_client)
     response = real_client.post(
         "/api/v1/usuario",
@@ -109,7 +109,7 @@ def test_real_create_user_validates_relationships_fk(real_client):
             "activo": True,
         },
     )
-    assert response.status_code == 409
+    assert response.status_code in {400, 409}
 
 
 def test_real_public_register_creates_persona_and_user(real_client):
@@ -174,11 +174,12 @@ def test_real_admin_can_create_product(real_client):
     _login(real_client)
     response = real_client.post(
         "/api/v1/productos",
-        json={"nombre": "Embalaje Seguro", "precio_actual": 99.90, "stock": 30},
+        json={"nombre": "Embalaje Seguro", "precio_actual": 99.90, "stock": 30, "id_campania": 1},
     )
     assert response.status_code == 201
     data = response.get_json()
     assert data["nombre"] == "Embalaje Seguro"
+    assert data["nombre_campania"] == "Promo Envio Express"
 
 
 def test_real_vendor_can_create_order_and_stock_changes(real_client):
@@ -221,6 +222,14 @@ def test_real_catalogs_are_available_after_bootstrap(real_client):
     assert response.status_code == 200
     assert len(data) >= 1
     assert data[0]["id_distrito"] == 10101
+
+
+def test_real_campaigns_are_available(real_client):
+    _login(real_client)
+    response = real_client.get("/api/v1/campanias")
+    data = response.get_json()
+    assert response.status_code == 200
+    assert any(item["nombre"] == "Promo Envio Express" for item in data)
 
 
 def test_real_persona_crud_lifecycle(real_client):
