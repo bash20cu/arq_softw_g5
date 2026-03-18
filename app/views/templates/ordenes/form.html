@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-{% block title %}Nueva Orden — ShopEasy CRM{% endblock %}
-{% block page_title %}Generar Orden de Compra{% endblock %}
+{% block title %}{% if is_edit %}Editar Orden{% else %}Nueva Orden{% endif %} — ShopEasy CRM{% endblock %}
+{% block page_title %}{% if is_edit %}Editar Orden de Compra{% else %}Generar Orden de Compra{% endif %}{% endblock %}
 {% block breadcrumb %}
   <li class="breadcrumb-item"><a href="/ordenes/" class="text-decoration-none">Órdenes</a></li>
-  <li class="breadcrumb-item active">Nueva Orden</li>
+  <li class="breadcrumb-item active">{% if is_edit %}Editar Orden{% else %}Nueva Orden{% endif %}</li>
 {% endblock %}
 
 {% block content %}
@@ -11,8 +11,10 @@
   <div class="col-xl-9">
     <div class="card border-0 shadow-sm">
       <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-        <h6 class="mb-0 fw-semibold"><i class="bi bi-cart-plus text-success me-2"></i>Registrar orden</h6>
-        <span class="badge bg-warning-subtle text-warning">Estado inicial: Pendiente</span>
+        <h6 class="mb-0 fw-semibold"><i class="bi bi-cart-plus text-success me-2"></i>{% if is_edit %}Editar orden{% else %}Registrar orden{% endif %}</h6>
+        <span class="badge bg-warning-subtle text-warning">
+          {% if is_edit %}Estado actual: {{ order.estado }}{% else %}Estado inicial: Pendiente{% endif %}
+        </span>
       </div>
       <div class="card-body p-4">
         <form method="POST" id="ordenForm">
@@ -23,11 +25,22 @@
                 <option value="">Seleccionar cliente...</option>
                 {% for cliente in clientes %}
                 <option value="{{ cliente.id_cliente }}" {% if order_data.id_cliente == cliente.id_cliente %}selected{% endif %}>
-                  Cliente #{{ cliente.id_cliente }} · {{ cliente.cedula_persona }}
+                  Cliente #{{ cliente.id_cliente }} · {{ cliente.nombre_completo }}{% if cliente.email %} · {{ cliente.email }}{% endif %}
                 </option>
                 {% endfor %}
               </select>
             </div>
+            {% if is_edit %}
+            <div class="col-lg-6">
+              <label class="form-label fw-medium">Estado</label>
+              <select name="estado" class="form-select">
+                {% set current_state = order_data.estado or order.estado %}
+                {% for state in ['Pendiente', 'Procesado', 'Enviado', 'Entregado'] %}
+                <option value="{{ state }}" {% if current_state == state %}selected{% endif %}>{{ state }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            {% endif %}
           </div>
 
           <div class="d-flex justify-content-between align-items-center mb-3">
@@ -76,9 +89,11 @@
                 <div class="h4 mb-0" id="ordenTotal">Q 0.00</div>
               </div>
               <div class="d-flex gap-2">
-                <a href="/ordenes/" class="btn btn-secondary">Cancelar</a>
+                <a href="/ordenes/{% if is_edit and order %}{{ order.id_orden }}{% endif %}" class="btn btn-secondary">
+                  {% if is_edit %}Volver{% else %}Cancelar{% endif %}
+                </a>
                 <button type="submit" class="btn btn-success">
-                  <i class="bi bi-check2-circle me-1"></i>Guardar orden
+                  <i class="bi bi-check2-circle me-1"></i>{% if is_edit %}Guardar cambios{% else %}Guardar orden{% endif %}
                 </button>
               </div>
             </div>

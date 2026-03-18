@@ -1,6 +1,6 @@
 import os
 
-import pymysql
+import psycopg2
 import pytest
 
 
@@ -136,7 +136,7 @@ def test_real_public_register_creates_persona_and_user(real_client):
 
 
 def test_real_endpoint_writes_user_in_database(real_client):
-    # Esperado: POST /usuario escribe realmente en MySQL (verificado por consulta directa).
+    # Esperado: POST /usuario escribe realmente en PostgreSQL (verificado por consulta directa).
     _login(real_client)
     username = "db_write_check"
     create_response = real_client.post(
@@ -151,18 +151,17 @@ def test_real_endpoint_writes_user_in_database(real_client):
     )
     assert create_response.status_code == 201
 
-    conn = pymysql.connect(
-        host=_require_env("MYSQL_HOST"),
-        port=int(_require_env("MYSQL_PORT")),
-        user=_require_env("MYSQL_USER"),
-        password=_require_env("MYSQL_PASSWORD"),
-        database=_require_env("MYSQL_DATABASE"),
-        autocommit=True,
+    conn = psycopg2.connect(
+        host=_require_env("POSTGRES_HOST"),
+        port=int(_require_env("POSTGRES_PORT")),
+        user=_require_env("POSTGRES_USER"),
+        password=_require_env("POSTGRES_PASSWORD"),
+        database=_require_env("POSTGRES_DB"),
     )
     try:
         with conn.cursor() as cursor:
             cursor.execute(
-                "SELECT COUNT(*) FROM Usuario WHERE username = %s", (username,)
+                "SELECT COUNT(*) FROM \"Usuario\" WHERE username = %s", (username,)
             )
             count = cursor.fetchone()[0]
             assert count == 1

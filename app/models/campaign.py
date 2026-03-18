@@ -2,7 +2,7 @@ from app.database import db
 
 
 class Campaign(db.Model):
-    __tablename__ = "Campania"
+    __tablename__ = "campania"
 
     id_campania = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), nullable=False)

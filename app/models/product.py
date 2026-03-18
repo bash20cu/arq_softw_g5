@@ -2,13 +2,13 @@ from app.database import db
 
 
 class Product(db.Model):
-    __tablename__ = "Producto"
+    __tablename__ = "producto"
 
     id_producto = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(150), nullable=False)
     precio_actual = db.Column(db.Numeric(12, 2), nullable=False)
     stock = db.Column(db.Integer, nullable=False, default=0)
-    id_campania = db.Column(db.Integer, db.ForeignKey("Campania.id_campania"), nullable=True)
+    id_campania = db.Column(db.Integer, db.ForeignKey("campania.id_campania"), nullable=True)
 
     detalles = db.relationship("OrderDetail", back_populates="producto", lazy="selectin")
     campania = db.relationship("Campaign", back_populates="productos", lazy="joined")

@@ -2,7 +2,7 @@ from app.database import db
 
 
 class Role(db.Model):
-    __tablename__ = "Rol"
+    __tablename__ = "rol"
 
     id_rol = db.Column(db.Integer, primary_key=True)
     nombre_rol = db.Column(db.String(50), unique=True, nullable=False)
@@ -15,7 +15,7 @@ class Role(db.Model):
 
 
 class Provincia(db.Model):
-    __tablename__ = "Provincia"
+    __tablename__ = "provincia"
 
     id_provincia = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(50), nullable=False)
@@ -28,10 +28,10 @@ class Provincia(db.Model):
 
 
 class Canton(db.Model):
-    __tablename__ = "Canton"
+    __tablename__ = "canton"
 
     id_canton = db.Column(db.Integer, primary_key=True)
-    id_provincia = db.Column(db.Integer, db.ForeignKey("Provincia.id_provincia"), nullable=False)
+    id_provincia = db.Column(db.Integer, db.ForeignKey("provincia.id_provincia"), nullable=False)
     nombre = db.Column(db.String(50), nullable=False)
 
     provincia = db.relationship("Provincia", lazy="joined")
@@ -45,10 +45,10 @@ class Canton(db.Model):
 
 
 class Distrito(db.Model):
-    __tablename__ = "Distrito"
+    __tablename__ = "distrito"
 
     id_distrito = db.Column(db.Integer, primary_key=True)
-    id_canton = db.Column(db.Integer, db.ForeignKey("Canton.id_canton"), nullable=False)
+    id_canton = db.Column(db.Integer, db.ForeignKey("canton.id_canton"), nullable=False)
     nombre = db.Column(db.String(50), nullable=False)
 
     canton = db.relationship("Canton", lazy="joined")

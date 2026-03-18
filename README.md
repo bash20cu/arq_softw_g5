@@ -1,6 +1,6 @@
 ﻿# arq_softw_g5
 
-Estructura base propuesta para un proyecto MVC con Python, MySQL y APIs REST.
+Estructura base propuesta para un proyecto MVC con Python, PostgreSQL y APIs REST.
 
 ## git
 https://github.com/bash20cu/arq_softw_g5
@@ -69,7 +69,7 @@ el api, y la entrada completa de la app, con la estructura de carpetas
 
 - Python 3.x 
 - Flask -> SSR
-- MySQL
+- PostgreSQL
 - SQLAlchemy
 
 ## Estructura MVC + API sugerida
@@ -120,7 +120,7 @@ arq_softw_g5/
 
 1. La ruta API recibe la peticion HTTP.
 2. El controller valida y procesa.
-3. El model consulta/guarda en MySQL.
+3. El model consulta/guarda en PostgreSQL.
 4. La API responde en JSON.
 
 ## Proximo paso
@@ -130,19 +130,30 @@ Si esta estructura te parece bien, en el siguiente paso te genero todos los arch
 ## Seed de prueba
 
 1. Ejecuta el esquema:
-`mysql -u root -p < app/models/schema.sql`
+`psql -U postgres -d SistemaVentas < app/models/schema.sql`
 
 2. Ejecuta datos de prueba:
-`mysql -u root -p sistema_ventas < app/models/seed.sql`
+`psql -U postgres -d SistemaVentas < app/models/seed.sql`
 
 Credenciales demo para `POST /api/v1/auth/verificar`:
 - `miguel_admin` / `admin123`
-- `carla_ventas` / `ventas123`
+- `carlo_ventas` / `ventas123`
 - `brandon_soporte` / `soporte123`
 
 Nota: en la base de datos las contrasenas se almacenan con hash (no en texto plano).
 
+## Configuracion PostgreSQL
+
+Variables requeridas en `.env`:
+
+- `SECRET_KEY`
+- `POSTGRES_USER`
+- `POSTGRES_PASSWORD`
+- `POSTGRES_HOST`
+- `POSTGRES_PORT`
+- `POSTGRES_DB`
+
 ## Carga automatica al iniciar app
 
-La app valida si existe la base configurada en `MYSQL_DATABASE`.
+La app valida si existe la base configurada en `POSTGRES_DB`.
 Si no existe, ejecuta `app/models/schema.sql` y `app/models/seed.sql` una sola vez.

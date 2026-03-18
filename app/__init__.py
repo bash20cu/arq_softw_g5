@@ -27,12 +27,14 @@ def create_app() -> Flask:
     # Frontend CRUD de usuarios (templates HTML).
     from app.routes.frontend import frontend_bp
     from app.routes.frontend_campaign import frontend_campaign_bp
+    from app.routes.frontend_client import frontend_client_bp
     from app.routes.frontend_order import frontend_order_bp
     from app.routes.frontend_persona import frontend_persona_bp
     from app.routes.frontend_product import frontend_product_bp
 
     app.register_blueprint(frontend_bp)
     app.register_blueprint(frontend_campaign_bp)
+    app.register_blueprint(frontend_client_bp)
     app.register_blueprint(frontend_persona_bp)
     app.register_blueprint(frontend_product_bp)
     app.register_blueprint(frontend_order_bp)

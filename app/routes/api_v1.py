@@ -5,6 +5,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app.controllers.auth_controller import AuthController
 from app.controllers.campaign_controller import CampaignController
+from app.controllers.client_controller import ClientController
 from app.controllers.menu_controller import MenuController
 from app.controllers.order_controller import OrderController
 from app.controllers.persona_controller import PersonaController
@@ -59,17 +60,89 @@ def health():
 @api_v1_bp.get("/clientes")
 @login_required
 def list_clientes():
-    clientes = Cliente.query.all()
-    return (
-        [
-            {
-                "id_cliente": c.id_cliente,
-                "cedula_persona": c.cedula_persona,
-            }
-            for c in clientes
-        ],
-        200,
-    )
+    clientes = ClientController.list_clients()
+    return [cliente.to_dict() for cliente in clientes], 200
+
+
+@api_v1_bp.post("/clientes")
+@roles_required(1, 2)
+def create_cliente():
+    payload = request.get_json(silent=True) or {}
+    try:
+        cliente = ClientController.create_client(
+            nombre=payload.get("nombre"),
+            apellido=payload.get("apellido"),
+            email=payload.get("email"),
+            telefono=payload.get("telefono"),
+            id_distrito=payload.get("id_distrito"),
+            cedula_persona=payload.get("cedula_persona"),
+            puntos_lealtad=payload.get("puntos_lealtad", 0),
+            estado_cliente=payload.get("estado_cliente", "Activo"),
+        )
+    except ValueError as exc:
+        db.session.rollback()
+        return error_response(str(exc), 400)
+    except IntegrityError:
+        db.session.rollback()
+        return error_response("no fue posible registrar el cliente", 409)
+    return cliente.to_dict(), 201
+
+
+@api_v1_bp.get("/clientes/<int:client_id>")
+@login_required
+def get_cliente(client_id: int):
+    cliente = ClientController.get_client_by_id(client_id)
+    if cliente is None:
+        return error_response("cliente no encontrado", 404)
+    return cliente.to_dict(), 200
+
+
+@api_v1_bp.put("/clientes/<int:client_id>")
+@roles_required(1, 2)
+def update_cliente(client_id: int):
+    cliente = ClientController.get_client_by_id(client_id)
+    if cliente is None:
+        return error_response("cliente no encontrado", 404)
+
+    payload = request.get_json(silent=True) or {}
+    allowed_fields = {
+        "cedula_persona",
+        "nombre",
+        "apellido",
+        "email",
+        "telefono",
+        "id_distrito",
+        "puntos_lealtad",
+        "estado_cliente",
+    }
+    update_fields = {k: v for k, v in payload.items() if k in allowed_fields}
+    if not update_fields:
+        return error_response("no hay campos validos para actualizar", 400)
+
+    try:
+        cliente = ClientController.update_client(cliente, **update_fields)
+    except ValueError as exc:
+        db.session.rollback()
+        return error_response(str(exc), 400)
+    except IntegrityError:
+        db.session.rollback()
+        return error_response("no fue posible actualizar el cliente", 409)
+
+    return cliente.to_dict(), 200
+
+
+@api_v1_bp.delete("/clientes/<int:client_id>")
+@roles_required(1, 2)
+def delete_cliente(client_id: int):
+    cliente = ClientController.get_client_by_id(client_id)
+    if cliente is None:
+        return error_response("cliente no encontrado", 404)
+    try:
+        ClientController.delete_client(cliente)
+    except IntegrityError:
+        db.session.rollback()
+        return error_response("cliente en uso por otras tablas", 409)
+    return {"ok": True, "message": "cliente eliminado"}, 200
 
 
 @api_v1_bp.get("/ordenes")
@@ -303,6 +376,55 @@ def create_order():
     response = order.to_dict(include_details=True)
     response["total"] = OrderController.calculate_total(order)
     return response, 201
+
+
+@api_v1_bp.put("/ordenes/<int:order_id>")
+@roles_required(1, 2)
+def update_order(order_id: int):
+    order = OrderController.get_order_by_id(order_id)
+    if order is None:
+        return error_response("orden no encontrada", 404)
+
+    payload = request.get_json(silent=True) or {}
+    allowed_fields = {"id_cliente", "detalles", "estado"}
+    update_fields = {k: v for k, v in payload.items() if k in allowed_fields}
+    if not update_fields:
+        return error_response("no hay campos validos para actualizar", 400)
+
+    try:
+        updated = OrderController.update_order(order, **update_fields)
+    except ValueError as exc:
+        db.session.rollback()
+        return error_response(str(exc), 400)
+    except IntegrityError:
+        db.session.rollback()
+        return error_response("no fue posible actualizar la orden", 409)
+
+    response = updated.to_dict(include_details=True)
+    response["total"] = OrderController.calculate_total(updated)
+    return response, 200
+
+
+@api_v1_bp.post("/ordenes/<int:order_id>/cancelar")
+@roles_required(1, 2)
+def cancel_order(order_id: int):
+    order = OrderController.get_order_by_id(order_id)
+    if order is None:
+        return error_response("orden no encontrada", 404)
+
+    try:
+        canceled = OrderController.cancel_order(order)
+    except ValueError as exc:
+        db.session.rollback()
+        return error_response(str(exc), 400)
+    except IntegrityError:
+        db.session.rollback()
+        return error_response("no fue posible cancelar la orden", 409)
+
+    response = canceled.to_dict(include_details=True)
+    response["total"] = OrderController.calculate_total(canceled)
+    response["message"] = "orden cancelada"
+    return response, 200
 
 
 @api_v1_bp.get("/facturas")
@@ -581,6 +703,11 @@ def register_user():
             id_rol=id_rol_value,
             activo=_to_bool(activo),
         )
+        if ClientController.get_client_by_cedula(cedula_persona) is None:
+            ClientController.create_client_from_persona(
+                cedula_persona=cedula_persona,
+                estado_cliente="Activo",
+            )
     except ValueError as exc:
         db.session.rollback()
         return error_response(str(exc), 400)

@@ -29,6 +29,12 @@ class MenuController:
                     "ruta_front": "/personas/",
                 },
                 {
+                    "id": "clientes",
+                    "nombre": "Clientes",
+                    "descripcion": "Base de clientes independientes o vinculados a persona.",
+                    "ruta_front": "/clientes/",
+                },
+                {
                     "id": "usuarios",
                     "nombre": "CRUD Usuarios",
                     "descripcion": "Gestion completa de usuarios del sistema.",

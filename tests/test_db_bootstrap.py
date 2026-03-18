@@ -14,10 +14,10 @@ def test_bootstrap_creates_schema_and_seed_when_database_does_not_exist(monkeypa
     )
 
     db_bootstrap.bootstrap_database(
-        db_user="root",
+        db_user="postgres",
         db_password="secret",
         db_host="localhost",
-        db_port="3306",
+        db_port="5432",
         db_name="test_db",
     )
 
@@ -40,10 +40,10 @@ def test_bootstrap_seeds_catalogs_when_database_exists(monkeypatch):
     )
 
     db_bootstrap.bootstrap_database(
-        db_user="root",
+        db_user="postgres",
         db_password="secret",
         db_host="localhost",
-        db_port="3306",
+        db_port="5432",
         db_name="test_db",
     )
 

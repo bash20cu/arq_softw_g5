@@ -3,7 +3,7 @@ import sys
 from datetime import date
 from pathlib import Path
 
-import pymysql
+import psycopg2
 import pytest
 from flask import Flask
 from dotenv import load_dotenv
@@ -31,6 +31,22 @@ def _require_env(name: str) -> str:
     if value is None or value.strip() == "":
         raise RuntimeError(f"Missing required environment variable for tests: {name}")
     return value
+
+
+@pytest.fixture()
+def app(tmp_path: Path):
+    db_path = tmp_path / "test_backend.db"
+
+    app = Flask(__name__)
+    app.config.update(
+        TESTING=True,
+        SECRET_KEY="test-secret-key",
+        SQLALCHEMY_DATABASE_URI=f"sqlite:///{db_path.as_posix()}",
+        SQLALCHEMY_TRACK_MODIFICATIONS=False,
+    )
+
+    db.init_app(app)
+    app.register_blueprint(api_v1_bp)
 
 
 @pytest.fixture()
@@ -150,8 +166,24 @@ def app(tmp_path: Path):
         )
         db.session.add_all(
             [
-                Cliente(id_cliente=1, cedula_persona="202220222"),
-                Cliente(id_cliente=2, cedula_persona="909990999"),
+                Cliente(
+                    id_cliente=1,
+                    cedula_persona="202220222",
+                    nombre="Carlo",
+                    apellido="Vargas",
+                    email="carlo_ventas_test@enviosg5.com",
+                    telefono="88880002",
+                    id_distrito=10101,
+                ),
+                Cliente(
+                    id_cliente=2,
+                    cedula_persona="909990999",
+                    nombre="Nuevo",
+                    apellido="Publico",
+                    email="nuevo_publico_test@enviosg5.com",
+                    telefono="88880009",
+                    id_distrito=10101,
+                ),
             ]
         )
 
@@ -280,24 +312,42 @@ def _execute_sql_file(cursor, sql_path: Path, db_name: str):
 
 @pytest.fixture()
 def real_client():
-    db_host = _require_env("MYSQL_HOST")
-    db_port = int(_require_env("MYSQL_PORT"))
-    db_user = _require_env("MYSQL_USER")
-    db_password = _require_env("MYSQL_PASSWORD")
-    db_name = _require_env("MYSQL_DATABASE")
+    db_host = _require_env("POSTGRES_HOST")
+    db_port = int(_require_env("POSTGRES_PORT"))
+    db_user = _require_env("POSTGRES_USER")
+    db_password = _require_env("POSTGRES_PASSWORD")
+    db_name = _require_env("POSTGRES_DB")
 
     try:
-        conn = pymysql.connect(
+        conn = psycopg2.connect(
             host=db_host,
             port=db_port,
             user=db_user,
             password=db_password,
-            autocommit=True,
+            database="postgres",  # Connect to default db first
         )
+        conn.autocommit = True
     except Exception as exc:
-        pytest.skip(f"MySQL no disponible para integration tests: {exc}")
+        pytest.skip(f"PostgreSQL no disponible para integration tests: {exc}")
 
     try:
+        cursor = conn.cursor()
+        # Create database if it doesn't exist
+        cursor.execute(f"SELECT 1 FROM pg_database WHERE datname = %s", (db_name,))
+        if not cursor.fetchone():
+            cursor.execute(f"CREATE DATABASE {db_name}")
+        cursor.close()
+        conn.close()
+
+        # Connect to the specific database
+        conn = psycopg2.connect(
+            host=db_host,
+            port=db_port,
+            user=db_user,
+            password=db_password,
+            database=db_name,
+        )
+        conn.autocommit = True
         cursor = conn.cursor()
         sql_dir = PROJECT_ROOT / "app" / "models"
         _execute_sql_file(cursor, sql_dir / "schema.sql", db_name)
@@ -306,15 +356,15 @@ def real_client():
     finally:
         conn.close()
 
-    mysql_uri = (
-        "mysql+pymysql://"
+    postgres_uri = (
+        "postgresql://"
         f"{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
     )
     app = Flask(__name__)
     app.config.update(
         TESTING=True,
         SECRET_KEY="test-secret-key",
-        SQLALCHEMY_DATABASE_URI=mysql_uri,
+        SQLALCHEMY_DATABASE_URI=postgres_uri,
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
     )
 

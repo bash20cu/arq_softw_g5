@@ -3,14 +3,14 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 
 class Persona(db.Model):
-    __tablename__ = "Persona"
+    __tablename__ = "persona"
 
     cedula = db.Column(db.String(20), primary_key=True)
     nombre = db.Column(db.String(100), nullable=False)
     apellido = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(150), unique=True, nullable=False)
     telefono = db.Column(db.String(20), nullable=True)
-    id_distrito = db.Column(db.Integer, db.ForeignKey("Distrito.id_distrito"), nullable=True)
+    id_distrito = db.Column(db.Integer, db.ForeignKey("distrito.id_distrito"), nullable=True)
     fecha_registro = db.Column(db.DateTime, nullable=True)
 
     distrito = db.relationship("Distrito", lazy="joined")
@@ -34,13 +34,13 @@ class Persona(db.Model):
 
 
 class User(db.Model):
-    __tablename__ = "Usuario"
+    __tablename__ = "usuario"
 
     id_usuario = db.Column(db.Integer, primary_key=True)
-    cedula_persona = db.Column(db.String(20), db.ForeignKey("Persona.cedula"), unique=True, nullable=False)
+    cedula_persona = db.Column(db.String(20), db.ForeignKey("persona.cedula"), unique=True, nullable=False)
     username = db.Column(db.String(50), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
-    id_rol = db.Column(db.Integer, db.ForeignKey("Rol.id_rol"), nullable=False)
+    id_rol = db.Column(db.Integer, db.ForeignKey("rol.id_rol"), nullable=False)
     activo = db.Column(db.Boolean, default=True)
 
     persona = db.relationship("Persona", lazy="joined")
@@ -73,12 +73,29 @@ class User(db.Model):
 
 
 class Cliente(db.Model):
-    __tablename__ = "Cliente"
+    __tablename__ = "cliente"
+
+    TIPOS_CLIENTE = {"Persona", "Empresa"}
 
     id_cliente = db.Column(db.Integer, primary_key=True)
-    cedula_persona = db.Column(db.String(20), db.ForeignKey("Persona.cedula"), unique=True, nullable=False)
+    cedula_persona = db.Column(db.String(20), db.ForeignKey("persona.cedula"), unique=True, nullable=True)
+    tipo_cliente = db.Column(db.String(20), nullable=False, default="Persona")
+    nombre = db.Column(db.String(100), nullable=False)
+    apellido = db.Column(db.String(100), nullable=True)
+    email = db.Column(db.String(150), nullable=False)
+    telefono = db.Column(db.String(20), nullable=True)
+    id_distrito = db.Column(db.Integer, db.ForeignKey("distrito.id_distrito"), nullable=True)
     puntos_lealtad = db.Column(db.Integer, default=0)
     estado_cliente = db.Column(db.String(20), default="Activo")
+
+    persona = db.relationship("Persona", lazy="joined")
+    distrito = db.relationship("Distrito", lazy="joined")
+
+    @property
+    def nombre_completo(self) -> str:
+        if self.tipo_cliente == "Empresa":
+            return self.nombre
+        return f"{self.nombre} {self.apellido}".strip()
 
     def save(self):
         db.session.add(self)
@@ -88,13 +105,20 @@ class Cliente(db.Model):
         return {
             "id_cliente": self.id_cliente,
             "cedula_persona": self.cedula_persona,
+            "tipo_cliente": self.tipo_cliente,
+            "nombre": self.nombre,
+            "apellido": self.apellido,
+            "nombre_completo": self.nombre_completo,
+            "email": self.email,
+            "telefono": self.telefono,
+            "id_distrito": self.id_distrito,
             "puntos_lealtad": self.puntos_lealtad,
             "estado_cliente": self.estado_cliente,
         }
 
 
 class Factura(db.Model):
-    __tablename__ = "Factura"
+    __tablename__ = "factura"
 
     id_factura = db.Column(db.Integer, primary_key=True)
     numero_factura = db.Column(db.String(20), unique=True, nullable=False)
