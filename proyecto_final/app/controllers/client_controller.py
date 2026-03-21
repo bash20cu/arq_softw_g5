@@ -27,6 +27,7 @@ class ClientController:
         apellido: str | None,
         email: str,
         telefono: str | None = None,
+        direccion: str | None = None,
         id_distrito: int | None = None,
         cedula_persona: str | None = None,
         puntos_lealtad=0,
@@ -39,6 +40,7 @@ class ClientController:
             apellido=apellido,
             email=email,
             telefono=telefono,
+            direccion=direccion,
             id_distrito=id_distrito,
             puntos_lealtad=puntos_lealtad,
             estado_cliente=estado_cliente,
@@ -72,6 +74,7 @@ class ClientController:
             apellido=persona.apellido,
             email=persona.email,
             telefono=persona.telefono,
+            direccion=None,
             id_distrito=persona.id_distrito,
             puntos_lealtad=ClientController._validate_points(puntos_lealtad),
             estado_cliente=ClientController._validate_state(estado_cliente),
@@ -94,6 +97,7 @@ class ClientController:
                 client.apellido = persona.apellido
                 client.email = persona.email
                 client.telefono = persona.telefono
+                client.direccion = None
                 client.id_distrito = persona.id_distrito
 
         if "tipo_cliente" in fields:
@@ -108,6 +112,8 @@ class ClientController:
             client.email = ClientController._require_text(fields["email"], "email")
         if "telefono" in fields:
             client.telefono = (fields["telefono"] or "").strip() or None
+        if "direccion" in fields:
+            client.direccion = (fields["direccion"] or "").strip() or None
         if "id_distrito" in fields:
             client.id_distrito = PersonaController._validate_distrito(fields["id_distrito"])
         if "puntos_lealtad" in fields:
@@ -132,6 +138,7 @@ class ClientController:
         apellido: str | None,
         email: str,
         telefono: str | None,
+        direccion: str | None,
         id_distrito,
         puntos_lealtad,
         estado_cliente: str,
@@ -143,6 +150,7 @@ class ClientController:
             "apellido": ClientController._normalize_last_name(apellido, parsed_type),
             "email": ClientController._require_text(email, "email"),
             "telefono": (telefono or "").strip() or None,
+            "direccion": (direccion or "").strip() or None,
             "id_distrito": PersonaController._validate_distrito(id_distrito),
             "puntos_lealtad": ClientController._validate_points(puntos_lealtad),
             "estado_cliente": ClientController._validate_state(estado_cliente),

@@ -7,13 +7,17 @@ from app.models.user import Cliente
 
 
 class OrderController:
-    ALLOWED_STATES = {"Pendiente", "Procesado", "Enviado", "Entregado", "Cancelado"}
-    EDITABLE_STATES = {"Pendiente", "Procesado"}
+    ALLOWED_STATES = {
+        "En preparacion",
+        "Listo para envio o recoleccion",
+        "Entregado al cliente",
+        "Cancelado",
+    }
+    EDITABLE_STATES = {"En preparacion"}
     TRANSITIONS = {
-        "Pendiente": {"Procesado", "Cancelado"},
-        "Procesado": {"Enviado", "Cancelado"},
-        "Enviado": {"Entregado"},
-        "Entregado": set(),
+        "En preparacion": {"Listo para envio o recoleccion", "Cancelado"},
+        "Listo para envio o recoleccion": {"Entregado al cliente", "Cancelado"},
+        "Entregado al cliente": set(),
         "Cancelado": set(),
     }
 
@@ -31,7 +35,7 @@ class OrderController:
         id_cliente,
         id_usuario,
         detalles: list[dict],
-        estado: str = "Pendiente",
+        estado: str = "En preparacion",
     ) -> Order:
         cliente_id = OrderController._validate_cliente(id_cliente)
         usuario_id = OrderController._validate_positive_int(id_usuario, "id_usuario")
@@ -69,7 +73,7 @@ class OrderController:
         estado: str | None = None,
     ) -> Order:
         if (id_cliente is not None or detalles is not None) and order.estado not in OrderController.EDITABLE_STATES:
-            raise ValueError("solo se pueden editar datos de una orden pendiente o procesada")
+            raise ValueError("solo se pueden editar datos de una orden en preparacion")
 
         if id_cliente is not None:
             order.id_cliente = OrderController._validate_cliente(id_cliente)
@@ -149,7 +153,7 @@ class OrderController:
 
     @staticmethod
     def _validate_state(value: str) -> str:
-        state = (value or "Pendiente").strip()
+        state = (value or "En preparacion").strip()
         if state not in OrderController.ALLOWED_STATES:
             raise ValueError("estado no permitido")
         return state

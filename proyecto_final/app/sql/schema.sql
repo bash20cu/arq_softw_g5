@@ -44,7 +44,7 @@ BEGIN
         codigo_barras NVARCHAR(80) NULL,
         precio_base DECIMAL(12,2) NOT NULL,
         iva_porcentaje DECIMAL(5,2) NOT NULL DEFAULT 13.00,
-        precio_actual AS CAST(precio_base * (1 + (iva_porcentaje / 100.0)) AS DECIMAL(12,2)),
+        precio_actual DECIMAL(12,2) NOT NULL,
         stock INT NOT NULL DEFAULT 0,
         activo BIT NOT NULL DEFAULT 1
     )

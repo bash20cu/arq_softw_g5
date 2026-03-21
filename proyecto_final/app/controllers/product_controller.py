@@ -2,7 +2,6 @@ from decimal import Decimal, InvalidOperation
 
 from sqlalchemy import func
 
-from app.controllers.campaign_controller import CampaignController
 from app.database import db
 from app.models.product import Product
 
@@ -19,17 +18,30 @@ class ProductController:
     @staticmethod
     def create_product(
         nombre: str,
-        precio_actual,
+        precio_base,
         stock,
-        id_campania: int | None = None,
+        descripcion: str | None = None,
+        fotografia_url: str | None = None,
+        color_estilo: str | None = None,
+        codigo_barras: str | None = None,
+        iva_porcentaje=13,
+        activo: bool = True,
     ) -> Product:
         normalized_name = ProductController._validate_name(nombre)
         ProductController._validate_unique_name(normalized_name)
+        normalized_base = ProductController._validate_price(precio_base, "precio_base")
+        normalized_iva = ProductController._validate_price(iva_porcentaje, "iva_porcentaje")
         product = Product(
             nombre=normalized_name,
-            precio_actual=ProductController._validate_price(precio_actual),
+            descripcion=(descripcion or "").strip() or None,
+            fotografia_url=(fotografia_url or "").strip() or None,
+            color_estilo=(color_estilo or "").strip() or None,
+            codigo_barras=(codigo_barras or "").strip() or None,
+            precio_base=normalized_base,
+            iva_porcentaje=normalized_iva,
+            precio_actual=ProductController._calculate_final_price(normalized_base, normalized_iva),
             stock=ProductController._validate_stock(stock),
-            id_campania=ProductController._validate_campaign(id_campania),
+            activo=bool(activo),
         )
         db.session.add(product)
         db.session.commit()
@@ -43,12 +55,31 @@ class ProductController:
                 normalized_name, current_product_id=product.id_producto
             )
             product.nombre = normalized_name
-        if "precio_actual" in fields:
-            product.precio_actual = ProductController._validate_price(fields["precio_actual"])
+        if "descripcion" in fields:
+            product.descripcion = (fields["descripcion"] or "").strip() or None
+        if "fotografia_url" in fields:
+            product.fotografia_url = (fields["fotografia_url"] or "").strip() or None
+        if "color_estilo" in fields:
+            product.color_estilo = (fields["color_estilo"] or "").strip() or None
+        if "codigo_barras" in fields:
+            product.codigo_barras = (fields["codigo_barras"] or "").strip() or None
+        if "precio_base" in fields:
+            product.precio_base = ProductController._validate_price(
+                fields["precio_base"], "precio_base"
+            )
+        if "iva_porcentaje" in fields:
+            product.iva_porcentaje = ProductController._validate_price(
+                fields["iva_porcentaje"], "iva_porcentaje"
+            )
+        if "precio_base" in fields or "iva_porcentaje" in fields:
+            product.precio_actual = ProductController._calculate_final_price(
+                product.precio_base,
+                product.iva_porcentaje,
+            )
         if "stock" in fields:
             product.stock = ProductController._validate_stock(fields["stock"])
-        if "id_campania" in fields:
-            product.id_campania = ProductController._validate_campaign(fields["id_campania"])
+        if "activo" in fields:
+            product.activo = bool(fields["activo"])
 
         db.session.add(product)
         db.session.commit()
@@ -75,13 +106,13 @@ class ProductController:
             raise ValueError("ya existe un producto con ese nombre")
 
     @staticmethod
-    def _validate_price(value) -> Decimal:
+    def _validate_price(value, field_name: str) -> Decimal:
         try:
             price = Decimal(str(value))
         except (InvalidOperation, TypeError, ValueError) as exc:
-            raise ValueError("precio_actual debe ser numerico") from exc
+            raise ValueError(f"{field_name} debe ser numerico") from exc
         if price <= 0:
-            raise ValueError("precio_actual debe ser mayor a cero")
+            raise ValueError(f"{field_name} debe ser mayor a cero")
         return price.quantize(Decimal("0.01"))
 
     @staticmethod
@@ -95,17 +126,6 @@ class ProductController:
         return stock
 
     @staticmethod
-    def list_campaigns():
-        return CampaignController.list_campaigns()
-
-    @staticmethod
-    def _validate_campaign(value) -> int | None:
-        if value in (None, "", 0, "0"):
-            return None
-        try:
-            campaign_id = int(value)
-        except (TypeError, ValueError) as exc:
-            raise ValueError("id_campania debe ser numerico") from exc
-        if CampaignController.get_campaign_by_id(campaign_id) is None:
-            raise ValueError("id_campania no existe")
-        return campaign_id
+    def _calculate_final_price(precio_base: Decimal, iva_porcentaje: Decimal) -> Decimal:
+        multiplier = Decimal("1.00") + (iva_porcentaje / Decimal("100.00"))
+        return (precio_base * multiplier).quantize(Decimal("0.01"))
