@@ -4,10 +4,11 @@ from app.config import Config
 from app.database import db
 from app.db_bootstrap import bootstrap_database
 from app.routes.api_v1 import api_v1_bp
+from app.routes.frontend import frontend_bp
 
 
 def create_app() -> Flask:
-    app = Flask(__name__)
+    app = Flask(__name__, template_folder="views/templates")
     app.config.from_object(Config)
 
     bootstrap_database(
@@ -21,5 +22,6 @@ def create_app() -> Flask:
 
     db.init_app(app)
     app.register_blueprint(api_v1_bp)
+    app.register_blueprint(frontend_bp)
 
     return app

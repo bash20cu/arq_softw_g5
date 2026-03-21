@@ -1,3 +1,4 @@
+from decimal import Decimal
 from functools import wraps
 
 from flask import Blueprint, request, session
@@ -6,6 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from app.controllers.auth_controller import AuthController
 from app.controllers.client_controller import ClientController
 from app.controllers.order_controller import OrderController
+from app.controllers.payment_controller import PaymentController
 from app.controllers.persona_controller import PersonaController
 from app.controllers.product_controller import ProductController
 from app.controllers.user_controller import UserController
@@ -590,3 +592,50 @@ def cancel_order(order_id: int):
     response["total"] = OrderController.calculate_total(canceled)
     response["message"] = "orden cancelada"
     return response, 200
+
+
+@api_v1_bp.get("/ordenes/<int:order_id>/pagos")
+@login_required
+def list_order_payments(order_id: int):
+    order = OrderController.get_order_by_id(order_id)
+    if order is None:
+        return error_response("orden no encontrada", 404)
+    payments = PaymentController.list_payments_for_order(order_id)
+    return [payment.to_dict() for payment in payments], 200
+
+
+@api_v1_bp.post("/ordenes/<int:order_id>/pagos/paypal/crear-orden")
+@roles_required(ROLE_ADMIN, ROLE_EMPLEADO)
+def create_paypal_payment(order_id: int):
+    order = OrderController.get_order_by_id(order_id)
+    if order is None:
+        return error_response("orden no encontrada", 404)
+
+    try:
+        amount = Decimal(str(OrderController.calculate_total(order))).quantize(Decimal("0.01"))
+        payload = PaymentController.create_paypal_order(
+            order=order,
+            amount=amount,
+            currency="USD",
+        )
+    except ValueError as exc:
+        db.session.rollback()
+        return error_response(str(exc), 400)
+
+    return payload, 201
+
+
+@api_v1_bp.post("/pagos/<int:payment_id>/capturar")
+@roles_required(ROLE_ADMIN, ROLE_EMPLEADO)
+def capture_payment(payment_id: int):
+    payment = PaymentController.get_payment_by_id(payment_id)
+    if payment is None:
+        return error_response("pago no encontrado", 404)
+
+    try:
+        payload = PaymentController.capture_paypal_order(payment)
+    except ValueError as exc:
+        db.session.rollback()
+        return error_response(str(exc), 400)
+
+    return payload, 200

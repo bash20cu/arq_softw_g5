@@ -177,6 +177,44 @@ Respuesta esperada:
 
 **POST** `{{base_url}}/api/v1/auth/logout`
 
+## Flujo de pagos PayPal Sandbox
+
+Para esta parte necesitas agregar en `.env`:
+
+- `PAYPAL_BASE_URL=https://api-m.sandbox.paypal.com`
+- `PAYPAL_CLIENT_ID=...`
+- `PAYPAL_CLIENT_SECRET=...`
+
+### 11. Crear orden PayPal para una compra
+
+**POST** `{{base_url}}/api/v1/ordenes/{{orden_id}}/pagos/paypal/crear-orden`
+
+Respuesta esperada:
+
+- `payment.id_pago`
+- `payment.referencia_externa`
+- `paypal_order.id`
+- links devueltos por PayPal
+
+Guardar `payment.id_pago` como `payment_id`.
+
+### 12. Listar pagos de una orden
+
+**GET** `{{base_url}}/api/v1/ordenes/{{orden_id}}/pagos`
+
+### 13. Capturar pago PayPal
+
+**POST** `{{base_url}}/api/v1/pagos/{{payment_id}}/capturar`
+
+Respuesta esperada:
+
+- estado del pago actualizado;
+- payload de captura de PayPal.
+
+Nota:
+
+La captura real depende de que la orden sandbox exista y sea aprobada en el flujo de PayPal. Para una primera demo de backend, alcanza con verificar que el backend pueda crear la orden PayPal y persistir la referencia externa.
+
 ## Flujo alterno de cliente
 
 Despues del registro, se puede probar login del cliente con:

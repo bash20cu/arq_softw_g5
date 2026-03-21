@@ -1,162 +1,396 @@
-# Proyecto Final - Guia de trabajo
+# Proyecto Final - Base para documento escrito
 
-## Base de referencia
+## Proposito de este documento
 
-Este documento se construye a partir del enunciado ubicado en `proyecto_final/docs/Enunciado PROYECTO ASA.docx`.
+Este README funciona como base de contenido para la parte escrita del proyecto final. La idea es que el equipo pueda tomar esta estructura, adaptarla al formato Word solicitado por el docente y completar portada, APA 7, bibliografia, bitacoras y anexos.
 
-Por el estado actual de `trabajo_en_clase`, la ruta mas conveniente para el equipo 5 es desarrollar el **Caso 1**, orientado a una empresa distribuidora con sitio web, administracion de productos, clientes, pedidos, control de inventario y consulta de estado de compras.
+## Referencia academica
 
-## Objetivo del proyecto
+Segun el enunciado del curso, el documento formal debe contener como minimo:
 
-Construir un sistema web en arquitectura por capas con enfoque MVC que permita:
+- portada;
+- detalle de la necesidad;
+- descripcion de las herramientas utilizadas para el desarrollo del sistema;
+- detalle de la arquitectura planteada;
+- detalle de los componentes del sistema;
+- al menos 3 conclusiones;
+- al menos 3 recomendaciones.
 
-- presentar informacion de la empresa y sus productos;
-- administrar inventario, clientes y pedidos;
-- soportar registro de usuarios internos y registro autonomo de clientes;
-- controlar estados de compra y consulta de pedidos;
-- documentar formalmente el trabajo segun las exigencias del curso.
+Ademas, los entregables del proyecto incluyen:
 
-## Pautas a seguir
+- cronograma con fechas y asignaciones;
+- introduccion;
+- levantamiento de requerimientos;
+- diseño de base de datos;
+- casos de uso;
+- diseño de pantallas;
+- prototipo funcional al 80%;
+- bitacoras firmadas.
 
-1. Mantener separacion estricta entre `trabajo_en_clase` y `proyecto_final`.
-2. Reutilizar solo lo que aporte valor directo al Caso 1.
-3. No copiar modulos completos sin antes validar si cumplen con el enunciado actual.
-4. Priorizar evidencia academica ademas del software: cronograma, requerimientos, base de datos, casos de uso y bitacoras.
-5. Alinear la implementacion tecnica con lo solicitado por el docente:
-   - arquitectura en capas o MVC;
-   - base de datos final en MSSQL Server Express;
-   - documento formal en Word con APA 7;
-   - prototipo funcional para el segundo avance;
-   - presentacion final y defensa oral.
-6. Tratar `trabajo_en_clase` como insumo de analisis, no como entrega final.
+## Caso seleccionado
 
-## Entregables del curso
+El equipo 5 desarrolla el **Caso 5: ProPat S.A.**
 
-### Entregable 1
+### Resumen del caso
 
-- Cronograma con fechas y asignaciones.
+La empresa ProPat S.A. requiere un sistema web de ventas que incluya:
 
-### Entregable 2
+- presentacion de informacion de la empresa;
+- contactos;
+- mision y vision;
+- catalogo de productos;
+- registro de clientes;
+- gestion de pedidos;
+- reduccion automatica del inventario;
+- estados de compra;
+- integracion con una pasarela de pagos de prueba;
+- consulta del estado del pedido;
+- acceso diferenciado entre clientes y empleados.
 
-- Introduccion.
-- Levantamiento de requerimientos.
-- Diseno de base de datos.
-- Casos de uso.
-- Bitacoras firmadas.
+## Introduccion
 
-### Entregable 3
+El presente proyecto corresponde al curso Arquitectura del Software y tiene como objetivo desarrollar una solucion web para la empresa ficticia ProPat S.A. El sistema busca apoyar el proceso de ventas en linea mediante la gestion de productos, clientes, pedidos y pagos electronicos en un entorno estructurado bajo arquitectura por capas con enfoque MVC.
 
-- Diseno de pantallas.
-- Prototipo funcional al 80%.
-- Bitacoras firmadas.
+Como parte del trabajo realizado por el equipo 5, se tomo como punto de partida el material previo desarrollado en `trabajo_en_clase`, separando claramente el nuevo desarrollo dentro de `proyecto_final` para evitar mezclar entregables. A partir de esa base se adapto la solucion para alinearla con los requerimientos del Caso 5, migrando el enfoque tecnico hacia MSSQL Server y añadiendo integracion inicial con PayPal Sandbox.
 
-## Matriz de riesgo y reutilizacion desde `trabajo_en_clase`
+## Detalle de la necesidad
 
-| Componente actual | Que tenemos | Potencial de reutilizacion | Riesgo | Accion recomendada |
-| --- | --- | --- | --- | --- |
-| API de usuarios y autenticacion | Login, sesiones, registro, roles, pruebas | Alto | Medio | Reutilizar base de autenticacion y ajustar roles y permisos al caso final |
-| Modulo de clientes | CRUD y endpoints | Alto | Bajo | Reutilizar casi completo, agregando categorias del enunciado |
-| Modulo de productos | CRUD y stock | Alto | Medio | Reutilizar estructura, pero agregar fotografia, colores/estilos, IVA, codigo de barras y ubicacion en bodega |
-| Modulo de ordenes | Registro de orden y detalle, descuento de stock | Alto | Medio | Reutilizar logica central y adaptar estados a `En preparacion`, `Listo para envio o recoleccion`, `Entregado` |
-| Modelo de base de datos actual | Persona, usuario, cliente, producto, orden, detalle, factura, campania | Medio-Alto | Alto | Tomarlo como punto de partida, pero redisenar para MSSQL y cerrar brechas con requerimientos faltantes |
-| Catalogos geograficos | Provincias, cantones, distritos | Medio | Bajo | Reutilizar si el caso final mantiene direccion estructurada |
-| Frontend administrativo | Listados, formularios, panel principal | Medio | Medio | Reutilizar patrones y flujo, pero redisenar pantallas del sitio publico y branding segun paleta del enunciado |
-| Campanias y soporte | Modulos adicionales no obligatorios para Caso 1 | Bajo | Medio | No priorizar en avance 1; solo rescatar ideas o estructuras utiles |
-| Pruebas automatizadas | API, integracion y E2E basicas | Alto | Bajo | Reutilizar enfoque y adaptar pruebas al dominio final |
-| Base de datos Docker/Postgres | Scripts y modelo actual | Medio | Alto | Util para desarrollo local, pero debe planearse migracion a MSSQL Server Express para la entrega |
+ProPat S.A. necesita una plataforma que le permita vender productos por medio de la web y administrar de manera organizada los procesos asociados a una compra digital. La empresa requiere mostrar su catalogo, registrar clientes, recibir pedidos, controlar el inventario y permitir el seguimiento de estados de compra.
 
-## Brechas detectadas frente al enunciado
+Adicionalmente, el caso exige integrar una pasarela de pagos con modalidad de prueba o sandbox, de forma que el sistema pueda crear y procesar intentos de pago electronico sin depender de cobros reales. Esto hace necesario un diseño que contemple seguridad, persistencia de datos, control de roles y una interfaz inicial tanto para clientes como para personal interno.
 
-- El sistema actual no evidencia MSSQL Server Express como base oficial.
-- Faltan atributos clave de producto: fotografia, colores o estilos, IVA, codigo de barras y ubicacion en bodega.
-- Falta una pantalla publica completa con informacion corporativa, mision, vision, contacto y ubicacion.
-- La clasificacion de clientes del enunciado no coincide con la estructura actual.
-- Los estados de pedido actuales no coinciden exactamente con los del caso.
-- No se observa una consulta publica o de cliente para revisar estado del pedido.
-- No se evidencia integracion con camara o lector para codigo de barras.
-- Hace falta formalizar logo, lineamiento visual y diseno alineado a la paleta del caso.
-- La documentacion academica aun no esta consolidada dentro de `proyecto_final`.
+## Objetivo general
 
-## Cronograma propuesto
+Desarrollar un sistema web de ventas para ProPat S.A. utilizando arquitectura por capas y base de datos MSSQL Server, permitiendo la administracion de productos, clientes, pedidos y pagos en linea.
 
-Tomando como referencia la fecha final del proyecto indicada en el enunciado, **14/04/2026**, se propone el siguiente plan:
+## Objetivos especificos
 
-| Fecha objetivo | Tarea | Responsable sugerido | Resultado esperado |
-| --- | --- | --- | --- |
-| 21/03/2026 | Revisar enunciado, elegir caso y ordenar repositorio | Equipo completo | Base del proyecto y alcance acordado |
-| 22/03/2026 | Inventario de reutilizacion de `trabajo_en_clase` | Lider tecnico + apoyo backend | Lista de modulos reutilizables y brechas |
-| 23/03/2026 | Definir requerimientos funcionales y no funcionales | Analisis/documentacion | Borrador de levantamiento de requerimientos |
-| 24/03/2026 | Ajustar modelo conceptual y logico de datos | Backend + base de datos | Version inicial del modelo final |
-| 25/03/2026 | Redactar casos de uso principales | Analisis/documentacion | Casos de uso de productos, clientes, pedidos y consulta |
-| 26/03/2026 | Preparar cronograma y bitacora 1 | Lider + secretaria documental | Evidencia formal para avance 1 |
-| 27/03/2026 | Migrar base tecnica minima a `proyecto_final` | Backend | Estructura inicial del proyecto final |
-| 28/03/2026 | Adaptar autenticacion, roles y modulo de clientes | Backend | Base funcional del acceso y clientes |
-| 29/03/2026 | Adaptar modulo de productos al enunciado | Backend + frontend | CRUD de productos con campos requeridos |
-| 30/03/2026 | Adaptar modulo de pedidos e inventario | Backend | Flujo de compra con reduccion de stock |
-| 31/03/2026 | Disenar pantallas publicas y administrativas | Frontend/UX | Propuesta visual del sitio |
-| 01/04/2026 | Implementar pagina publica e identidad visual | Frontend | Inicio del sitio con informacion corporativa |
-| 02/04/2026 | Implementar consulta de estado de pedidos | Backend + frontend | Pantalla funcional para seguimiento |
-| 03/04/2026 | Definir estrategia de codigo de barras | Equipo tecnico | Decision tecnica documentada |
-| 04/04/2026 | Preparar bitacoras 2 y 3 | Lider + equipo | Evidencia firmable actualizada |
-| 05/04/2026 | Ejecutar pruebas tecnicas y corregir brechas | QA + backend | Sistema estable para demostracion |
-| 06/04/2026 | Completar documento de avance | Documentacion | Entrega escrita casi cerrada |
-| 07/04/2026 | Refinar prototipo al 80% | Equipo completo | Segundo avance funcional |
-| 08/04/2026 | Preparar bitacoras 4 y 5 | Lider + equipo | Evidencia completa |
-| 09/04/2026 | Revisar APA 7, portada y conclusiones | Documentacion | Documento formal listo |
-| 10/04/2026 | Preparar PPT y guion de exposicion | Equipo completo | Material de presentacion listo |
-| 11/04/2026 - 13/04/2026 | Ajustes finales, ensayo y validacion | Equipo completo | Entrega final depurada |
-| 14/04/2026 | Entrega final | Equipo completo | Proyecto entregado |
+- Implementar una base de datos relacional en MSSQL Server para soportar el dominio del sistema.
+- Permitir registro autonomo de clientes y autenticacion de usuarios.
+- Gestionar productos con informacion comercial e inventario.
+- Registrar pedidos y reducir automaticamente el stock.
+- Consultar el estado de pedidos desde el sistema.
+- Integrar una pasarela de pago en modo sandbox para pruebas.
+- Construir un frontend rustico inicial que consuma los servicios del backend.
 
-## Tareas por frente
-
-### Analisis y documentacion
-
-- Elegir formalmente el Caso 1 como alcance del proyecto.
-- Redactar introduccion, necesidad del negocio y herramientas usadas.
-- Consolidar requerimientos funcionales y no funcionales.
-- Elaborar casos de uso y anexar bitacoras.
-- Preparar conclusiones y recomendaciones.
-
-### Base de datos
-
-- Convertir el modelo actual a una propuesta compatible con MSSQL Server Express.
-- Incorporar campos faltantes para productos, pedidos e inventario.
-- Revisar claves, restricciones y catalogos.
-- Generar diagrama entidad-relacion final.
+## Herramientas utilizadas
 
 ### Backend
 
-- Reutilizar autenticacion, usuarios, clientes, productos y ordenes.
-- Ajustar reglas de negocio al enunciado.
-- Incorporar consulta de pedido para clientes.
-- Revisar permisos por tipo de usuario interno y cliente.
+- Python 3.10.20
+- Flask
+- Flask-SQLAlchemy
+- SQLAlchemy
+- pyodbc
+- python-dotenv
 
-### Frontend
+### Base de datos
 
-- Crear pagina publica con empresa, ubicacion, contactos, mision y vision.
-- Adaptar formularios y listados al caso final.
-- Preparar interfaz de consulta de pedidos.
-- Aplicar identidad visual con la paleta: negro, amarillo, blanco, dorado y naranja.
+- MSSQL Server
+- ODBC Driver 18 for SQL Server
 
-### Calidad
+### Integracion de pagos
 
-- Reusar pruebas existentes como base.
-- Crear pruebas para pedidos, inventario y consulta de estado.
-- Validar que el prototipo soporte una demo estable.
+- PayPal Sandbox
 
-## Recomendacion inmediata
+### Pruebas y validacion
 
-El siguiente paso mas rentable es crear en `proyecto_final` una primera copia controlada de solo estos bloques de `trabajo_en_clase`:
+- Pytest
+- Postman
 
-- autenticacion y usuarios;
+### Frontend inicial
+
+- HTML
+- Bootstrap 5
+- jQuery
+
+### Entorno de trabajo
+
+- VM con Debian y SQL Server configurado
+- Desarrollo local en macOS para integracion y pruebas
+
+## Arquitectura planteada
+
+La solucion se organizo siguiendo una arquitectura por capas con enfoque MVC ligero:
+
+### Capa de presentacion
+
+Corresponde a las vistas HTML y a los endpoints HTTP expuestos por Flask. Incluye:
+
+- pantallas publicas y administrativas en `app/views/templates`;
+- rutas de frontend en `app/routes/frontend.py`;
+- API REST en `app/routes/api_v1.py`.
+
+### Capa de logica de negocio
+
+Implementada mediante controladores que encapsulan reglas y validaciones:
+
+- `auth_controller.py`
+- `client_controller.py`
+- `product_controller.py`
+- `order_controller.py`
+- `payment_controller.py`
+- `user_controller.py`
+
+### Capa de acceso a datos
+
+Representada por los modelos SQLAlchemy y la gestion de sesion de base de datos:
+
+- `app/models/user.py`
+- `app/models/product.py`
+- `app/models/order.py`
+- `app/models/catalog.py`
+- `app/database.py`
+
+### Capa de persistencia e inicializacion
+
+Incluye la configuracion de conexion e inyeccion automatica del esquema SQL:
+
+- `app/config.py`
+- `app/db_bootstrap.py`
+- `app/sql/schema.sql`
+- `app/sql/seed.sql`
+
+## Componentes del sistema
+
+### 1. Modulo de autenticacion
+
+Permite:
+
+- verificar credenciales;
+- crear sesion para usuarios autenticados;
+- registrar clientes desde interfaz publica;
+- cerrar sesion.
+
+### 2. Modulo de usuarios y roles
+
+Gestiona:
+
+- usuarios administrativos;
+- empleados;
 - clientes;
-- productos;
+- control de acceso por rol.
+
+### 3. Modulo de clientes
+
+Permite:
+
+- registrar clientes;
+- mantener informacion de contacto;
+- consultar clientes existentes;
+- asociar registros de cliente con datos de persona.
+
+### 4. Modulo de productos
+
+Permite:
+
+- crear productos;
+- listar productos;
+- mantener stock;
+- registrar descripcion, codigo de barras, fotografia, color o estilo, precio base e IVA.
+
+### 5. Modulo de ordenes
+
+Permite:
+
+- crear pedidos;
+- asociar cliente y productos;
+- calcular total;
+- controlar estados de compra;
+- reducir inventario automaticamente.
+
+Estados implementados:
+
+- `En preparacion`
+- `Listo para envio o recoleccion`
+- `Entregado al cliente`
+- `Cancelado`
+
+### 6. Modulo de pagos
+
+Permite:
+
+- registrar pagos asociados a una orden;
+- crear ordenes de pago en PayPal Sandbox;
+- almacenar referencia externa del proveedor;
+- capturar pagos luego de aprobacion.
+
+### 7. Modulo de consulta de pedidos
+
+Permite consultar:
+
+- identificador de pedido;
+- estado;
+- fecha;
+- total.
+
+### 8. Frontend rustico inicial
+
+Se construyeron pantallas sencillas para:
+
+- inicio;
+- login;
+- registro;
+- panel principal;
+- catalogo de productos;
 - ordenes;
-- pruebas base;
-- esquema de base de datos como borrador.
+- consulta de pedido.
 
-No conviene pasar todavia los modulos de campanias y soporte, porque aumentan complejidad y no son esenciales para el Caso 1.
+## Modelado de base de datos
 
-## Decision de alcance asumida
+El modelo inicial del Caso 5 se construyo en MSSQL Server considerando las siguientes entidades principales:
 
-Este plan asume que el equipo 5 desarrollara el **Caso 1** del enunciado, por ser el que mejor coincide con lo ya construido en `trabajo_en_clase`.
+- `rol`
+- `provincia`
+- `canton`
+- `distrito`
+- `persona`
+- `usuario`
+- `cliente`
+- `producto`
+- `orden_compra`
+- `detalle_orden`
+- `pago`
+
+### Relacion general
+
+- una persona puede asociarse a un usuario;
+- una persona puede asociarse a un cliente;
+- un usuario pertenece a un rol;
+- un pedido pertenece a un cliente y a un usuario;
+- un pedido tiene muchos detalles;
+- un detalle referencia un producto;
+- un pago pertenece a una orden.
+
+### Archivo base del esquema
+
+El esquema actual se encuentra en:
+
+- `proyecto_final/app/sql/schema.sql`
+
+El seed inicial se encuentra en:
+
+- `proyecto_final/app/sql/seed.sql`
+
+## Requerimientos implementados al cierre de la jornada
+
+Durante la jornada de trabajo del 21/03/2026 se avanzaron los siguientes puntos:
+
+- separacion formal entre `trabajo_en_clase` y `proyecto_final`;
+- configuracion del backend en `proyecto_final`;
+- adaptacion de variables de entorno para MSSQL;
+- conexion funcional a SQL Server;
+- creacion automatica de la base de datos `SistemaVentas`;
+- inyeccion del esquema SQL desde la aplicacion;
+- seed inicial de roles y usuario administrador;
+- API de salud, autenticacion, productos, clientes, usuarios y ordenes;
+- consulta de estado de pedidos;
+- integracion inicial con PayPal Sandbox;
+- frontend rustico con Bootstrap y jQuery;
+- documentacion de pruebas con Postman;
+- pruebas automatizadas del backend.
+
+## Pruebas realizadas
+
+### Pruebas manuales
+
+Se prepararon pruebas manuales con Postman en:
+
+- `proyecto_final/docs/postman/README.md`
+
+Estas pruebas cubren:
+
+- login;
+- registro de cliente;
+- creacion de producto;
+- creacion de orden;
+- consulta de estado;
+- flujo inicial de pagos.
+
+### Pruebas automatizadas
+
+Se implementaron pruebas en:
+
+- `proyecto_final/tests/conftest.py`
+- `proyecto_final/tests/test_backend_flow.py`
+
+Resultados obtenidos:
+
+- flujo completo del backend validado;
+- validaciones de permisos comprobadas;
+- errores de autenticacion comprobados;
+- validacion de stock insuficiente comprobada;
+- simulacion de pagos integrada en pruebas.
+
+## Estado actual del prototipo
+
+El sistema se encuentra en una fase funcional inicial. El backend ya permite demostrar la mayor parte del flujo principal del Caso 5 y el frontend rustico ofrece una base navegable para presentacion y pruebas.
+
+### Lo que ya funciona
+
+- arranque del sistema;
+- conexion a MSSQL;
+- creacion del esquema;
+- autenticacion;
+- CRUD basico de productos;
+- registro de clientes;
+- creacion y gestion de ordenes;
+- consulta del estado de pedidos;
+- generacion de ordenes PayPal Sandbox;
+- frontend inicial para operar estos modulos.
+
+### Lo que aun debe reforzarse
+
+- mayor refinamiento visual;
+- flujo completo de aprobacion y captura PayPal desde interfaz de usuario;
+- mejoras en manejo de errores en frontend;
+- ampliacion de pruebas;
+- elaboracion formal de casos de uso y anexos academicos.
+
+## Relacion con el enunciado
+
+El avance desarrollado responde directamente a los requerimientos del Caso 5:
+
+- sitio web: implementado en version rustica inicial;
+- informacion de empresa, mision y vision: presentes en frontend inicial;
+- registro de clientes: implementado;
+- productos con atributos de venta: implementado en backend;
+- pedidos y reduccion de inventario: implementado;
+- estados de compra: implementado;
+- consulta de estado de pedidos: implementado;
+- pasarela de pagos de prueba: implementacion inicial con PayPal Sandbox.
+
+## Conclusiones
+
+1. La separacion entre `trabajo_en_clase` y `proyecto_final` permitio reorganizar el desarrollo sin perder el trabajo previo y facilitando una adaptacion mas ordenada al Caso 5.
+2. La migracion hacia MSSQL Server y la inyeccion de un esquema SQL controlado fortalecieron la consistencia tecnica del proyecto y lo alinearon mejor con lo exigido por el curso.
+3. La integracion inicial con PayPal Sandbox demuestra que el sistema ya no se limita a gestionar catalogo y pedidos, sino que incorpora una base realista para el proceso de pagos electronicos.
+
+## Recomendaciones
+
+1. Continuar con la evolucion del frontend para mejorar usabilidad, validaciones visuales y claridad del flujo de compra.
+2. Documentar formalmente los casos de uso, diagrama de base de datos y arquitectura en formato Word con normas APA 7 para cumplir integralmente con el entregable academico.
+3. Mantener y ampliar la suite de pruebas automaticas para proteger el sistema ante regresiones durante las siguientes fases del proyecto.
+
+## Estructura sugerida para el Word
+
+Se recomienda pasar este contenido a Word bajo esta estructura:
+
+1. Portada
+2. Introduccion
+3. Detalle de la necesidad
+4. Objetivo general y objetivos especificos
+5. Herramientas utilizadas
+6. Arquitectura planteada
+7. Componentes del sistema
+8. Diseño de base de datos
+9. Avance implementado
+10. Pruebas realizadas
+11. Conclusiones
+12. Recomendaciones
+13. Bibliografia
+14. Apendices y bitacoras
+
+## Nota final
+
+Este README no reemplaza el documento formal del curso, pero si concentra el contenido tecnico principal desarrollado hasta la fecha y puede usarse como base directa para la redaccion del entregable en Word.

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from app.database import db
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -11,7 +13,7 @@ class Persona(db.Model):
     email = db.Column(db.String(150), unique=True, nullable=False)
     telefono = db.Column(db.String(20), nullable=True)
     id_distrito = db.Column(db.Integer, db.ForeignKey("distrito.id_distrito"), nullable=True)
-    fecha_registro = db.Column(db.DateTime, nullable=True)
+    fecha_registro = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     distrito = db.relationship("Distrito", lazy="joined")
 

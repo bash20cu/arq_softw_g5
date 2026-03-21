@@ -11,6 +11,21 @@ BEGIN
     )
 END
 
+IF COL_LENGTH('dbo.pago', 'proveedor') IS NULL
+    ALTER TABLE dbo.pago ADD proveedor NVARCHAR(50) NOT NULL DEFAULT 'paypal'
+
+IF COL_LENGTH('dbo.pago', 'referencia_externa') IS NULL
+    ALTER TABLE dbo.pago ADD referencia_externa NVARCHAR(120) NULL
+
+IF COL_LENGTH('dbo.pago', 'monto') IS NULL
+    ALTER TABLE dbo.pago ADD monto DECIMAL(12,2) NOT NULL DEFAULT 0
+
+IF COL_LENGTH('dbo.pago', 'estado') IS NULL
+    ALTER TABLE dbo.pago ADD estado NVARCHAR(30) NOT NULL DEFAULT 'Pendiente'
+
+IF COL_LENGTH('dbo.pago', 'fecha_pago') IS NULL
+    ALTER TABLE dbo.pago ADD fecha_pago DATETIME2 NOT NULL DEFAULT SYSDATETIME()
+
 IF OBJECT_ID('dbo.detalle_orden', 'U') IS NULL
 BEGIN
     CREATE TABLE dbo.detalle_orden (
