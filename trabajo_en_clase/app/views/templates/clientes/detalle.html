@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Cliente {{ cliente.id_cliente }} — ShopEasy CRM{% endblock %}
+{% block page_title %}Detalle de Cliente{% endblock %}
+{% block breadcrumb %}
+  <li class="breadcrumb-item"><a href="/clientes/" class="text-decoration-none">Clientes</a></li>
+  <li class="breadcrumb-item active">{{ cliente.id_cliente }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-body d-flex align-items-center gap-4 p-4">
+        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold flex-shrink-0"
+             style="width:64px;height:64px;font-size:24px">
+          {{ cliente.nombre[0].upper() if cliente.nombre else '?' }}
+        </div>
+        <div class="flex-grow-1">
+          <h5 class="mb-1 fw-bold">{{ cliente.nombre_completo }}</h5>
+          <span class="text-muted small">Cliente #{{ cliente.id_cliente }}</span>
+        </div>
+        <div class="d-flex gap-2">
+          <a href="/clientes/{{ cliente.id_cliente }}/editar" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-pencil me-1"></i>Editar
+          </a>
+          <button class="btn btn-outline-danger btn-sm" onclick="confirmarEliminarCliente('{{ cliente.id_cliente }}', '{{ cliente.nombre_completo }}')">
+            <i class="bi bi-trash me-1"></i>Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white border-bottom py-3">
+        <h6 class="mb-0 fw-semibold"><i class="bi bi-info-circle me-2 text-primary"></i>Información del cliente</h6>
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-borderless mb-0">
+          <tbody>
+            <tr class="border-bottom">
+              <td class="ps-4 text-muted fw-medium" style="width:40%">Cliente</td>
+              <td><code>#{{ cliente.id_cliente }}</code></td>
+            </tr>
+            <tr class="border-bottom">
+              <td class="ps-4 text-muted fw-medium">Nombre completo</td>
+              <td class="fw-semibold">{{ cliente.nombre_completo }}</td>
+            </tr>
+            <tr class="border-bottom">
+              <td class="ps-4 text-muted fw-medium">Email</td>
+              <td>{{ cliente.email }}</td>
+            </tr>
+            <tr class="border-bottom">
+              <td class="ps-4 text-muted fw-medium">Teléfono</td>
+              <td>{{ cliente.telefono or '—' }}</td>
+            </tr>
+            <tr class="border-bottom">
+              <td class="ps-4 text-muted fw-medium">Estado</td>
+              <td>{{ cliente.estado_cliente }}</td>
+            </tr>
+            <tr class="border-bottom">
+              <td class="ps-4 text-muted fw-medium">Puntos</td>
+              <td>{{ cliente.puntos_lealtad }}</td>
+            </tr>
+            <tr class="border-bottom">
+              <td class="ps-4 text-muted fw-medium">Persona vinculada</td>
+              <td>{{ cliente.cedula_persona or 'No vinculada' }}</td>
+            </tr>
+            <tr>
+              <td class="ps-4 text-muted fw-medium">Ubicación</td>
+              <td>
+                {% if cliente.distrito %}
+                {{ cliente.distrito.canton.provincia.nombre }} / {{ cliente.distrito.canton.nombre }} / {{ cliente.distrito.nombre }}
+                {% else %}
+                —
+                {% endif %}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="mt-3">
+      <a href="/clientes/" class="btn btn-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Volver a la lista
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/clientes-lista.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} — ShopEasy CRM{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block breadcrumb %}
+  <li class="breadcrumb-item"><a href="/campanias/" class="text-decoration-none">Campañas</a></li>
+  <li class="breadcrumb-item active">{{ title }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white border-bottom py-3">
+        <h6 class="mb-0 fw-semibold">
+          {% if action == 'crear' %}
+          <i class="bi bi-megaphone text-success me-2"></i>Datos de la nueva campaña
+          {% else %}
+          <i class="bi bi-pencil-square text-primary me-2"></i>Modificar campaña
+          {% endif %}
+        </h6>
+      </div>
+      <div class="card-body p-4">
+        <form method="POST">
+          <div class="row g-3">
+            <div class="col-md-12">
+              <label class="form-label fw-medium">Nombre <span class="text-danger">*</span></label>
+              <input type="text" name="nombre" class="form-control" value="{{ campania.nombre or '' }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Fecha inicio</label>
+              <input type="date" name="fecha_inicio" class="form-control" value="{{ campania.fecha_inicio.isoformat() if campania.fecha_inicio else campania.fecha_inicio or '' }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Fecha fin</label>
+              <input type="date" name="fecha_fin" class="form-control" value="{{ campania.fecha_fin.isoformat() if campania.fecha_fin else campania.fecha_fin or '' }}">
+            </div>
+            <div class="col-md-12">
+              <label class="form-label fw-medium">Descripción</label>
+              <textarea name="descripcion" class="form-control" rows="4">{{ campania.descripcion or '' }}</textarea>
+            </div>
+          </div>
+          <hr class="my-4">
+          <div class="d-flex justify-content-end gap-2">
+            <a href="/campanias/" class="btn btn-secondary">
+              <i class="bi bi-arrow-left me-1"></i>Cancelar
+            </a>
+            <button type="submit" class="btn btn-{{ 'success' if action == 'crear' else 'primary' }}">
+              {% if action == 'crear' %}
+              <i class="bi bi-plus-circle me-1"></i>Crear Campaña
+              {% else %}
+              <i class="bi bi-check-circle me-1"></i>Guardar Cambios
+              {% endif %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

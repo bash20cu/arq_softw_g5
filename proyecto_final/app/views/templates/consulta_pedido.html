@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Consultar pedido | ProPat{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="bg-white border rounded p-4">
+      <h1 class="h5 mb-3">Consulta de estado de pedido</h1>
+      <p class="small-muted">Pantalla publica basica. Usa el ID de orden entregado por el sistema.</p>
+      <form id="statusForm" class="row g-2 align-items-end">
+        <div class="col-md-8">
+          <label class="form-label small">ID de orden</label>
+          <input class="form-control" name="order_id" placeholder="Ejemplo: 1">
+        </div>
+        <div class="col-md-4">
+          <button class="btn btn-dark w-100" type="submit">Consultar</button>
+        </div>
+      </form>
+      <div id="statusAlert" class="alert d-none mt-3"></div>
+      <div id="statusResult" class="placeholder-panel mt-3 d-none"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$("#statusForm").on("submit", async function (event) {
+  event.preventDefault();
+  const orderId = $(this).find("[name='order_id']").val();
+  const response = await fetch(`/api/v1/ordenes/${orderId}/estado`);
+  const data = await response.json();
+  const alert = $("#statusAlert");
+  const result = $("#statusResult");
+
+  if (!response.ok) {
+    result.addClass("d-none").empty();
+    alert.removeClass("d-none alert-success").addClass("alert-danger").text(data.error || "No fue posible consultar");
+    return;
+  }
+
+  alert.addClass("d-none").text("");
+  result.removeClass("d-none").html(`
+    <p class="mb-1"><strong>Orden:</strong> ${data.id_orden}</p>
+    <p class="mb-1"><strong>Estado:</strong> ${data.estado}</p>
+    <p class="mb-1"><strong>Fecha:</strong> ${data.fecha_orden}</p>
+    <p class="mb-0"><strong>Total:</strong> ${data.total}</p>
+  `);
+});
+</script>
+{% endblock %}
