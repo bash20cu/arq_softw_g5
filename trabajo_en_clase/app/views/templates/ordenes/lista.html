@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block title %}Órdenes — ShopEasy CRM{% endblock %}
+{% block page_title %}Gestión de Órdenes{% endblock %}
+{% block breadcrumb %}
+  <li class="breadcrumb-item active">Órdenes</li>
+{% endblock %}
+
+{% block content %}
+{% if ordenes %}
+<div class="row g-3 mb-4">
+  <div class="col-sm-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="bg-primary bg-opacity-10 rounded-3 p-3">
+          <i class="bi bi-receipt fs-4 text-primary"></i>
+        </div>
+        <div>
+          <div class="fs-3 fw-bold">{{ ordenes | length }}</div>
+          <div class="text-muted small">Órdenes registradas</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="bg-warning bg-opacity-10 rounded-3 p-3">
+          <i class="bi bi-hourglass-split fs-4 text-warning"></i>
+        </div>
+        <div>
+          <div class="fs-3 fw-bold">{{ ordenes | selectattr('estado', 'equalto', 'Pendiente') | list | length }}</div>
+          <div class="text-muted small">Pendientes</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="bg-success bg-opacity-10 rounded-3 p-3">
+          <i class="bi bi-check2-circle fs-4 text-success"></i>
+        </div>
+        <div>
+          <div class="fs-3 fw-bold">{{ ordenes | selectattr('estado', 'equalto', 'Enviado') | list | length }}</div>
+          <div class="text-muted small">Enviadas</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="card border-0 shadow-sm">
+  <div class="card-header bg-white border-bottom d-flex align-items-center justify-content-between py-3">
+    <h6 class="mb-0 fw-semibold">Listado de órdenes</h6>
+    <div class="d-flex gap-2">
+      <input type="text" class="form-control form-control-sm" id="buscador"
+             placeholder="Buscar orden..." style="width:220px" oninput="filtrarOrdenes(this.value)">
+      <a href="/ordenes/nuevo" class="btn btn-success btn-sm">
+        <i class="bi bi-plus-lg me-1"></i>Nueva Orden
+      </a>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    {% if error %}
+    <div class="text-center py-5">
+      <i class="bi bi-wifi-off fs-1 text-danger opacity-50"></i>
+      <p class="mt-3 text-muted">{{ error }}</p>
+    </div>
+    {% elif not ordenes %}
+    <div class="text-center py-5">
+      <i class="bi bi-inbox fs-1 text-muted opacity-50"></i>
+      <p class="mt-3 text-muted">No hay órdenes registradas.</p>
+      <a href="/ordenes/nuevo" class="btn btn-success btn-sm">Crear la primera</a>
+    </div>
+    {% else %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0" id="tabla-ordenes">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-4">#</th>
+            <th>Cliente</th>
+            <th>Vendedor</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+            <th>Total</th>
+            <th class="text-end pe-4">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for o in ordenes %}
+          <tr>
+            <td class="ps-4 text-muted small">{{ o.id_orden }}</td>
+            <td>
+              <div class="fw-medium">{{ o.cliente.nombre_completo if o.cliente else ('Cliente #' ~ o.id_cliente) }}</div>
+              <div class="text-muted small">{{ o.cliente.email if o.cliente and o.cliente.email else '' }}</div>
+            </td>
+            <td>
+              <div class="fw-medium">{{ o.usuario.persona.nombre ~ ' ' ~ o.usuario.persona.apellido if o.usuario and o.usuario.persona else ('Usuario #' ~ o.id_usuario) }}</div>
+              <div class="text-muted small">{{ o.usuario.username if o.usuario else '' }}</div>
+            </td>
+            <td>{{ o.fecha_orden.strftime('%d/%m/%Y %H:%M') if o.fecha_orden else '—' }}</td>
+            <td>
+              <span class="badge {% if o.estado == 'Cancelado' %}bg-danger-subtle text-danger{% elif o.estado == 'Entregado' %}bg-success-subtle text-success{% elif o.estado == 'Enviado' %}bg-info-subtle text-info{% else %}bg-primary bg-opacity-10 text-primary{% endif %}">
+                {{ o.estado }}
+              </span>
+            </td>
+            <td>Q {{ '%.2f'|format(o.detalles | sum(attribute='subtotal')) }}</td>
+            <td class="text-end pe-4">
+              <a href="/ordenes/{{ o.id_orden }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-eye"></i></a>
+              {% if o.estado in ['Pendiente', 'Procesado'] %}
+              <a href="/ordenes/{{ o.id_orden }}/editar" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil"></i></a>
+              {% endif %}
+              {% if o.estado == 'Pendiente' %}
+              <form method="post" action="/ordenes/{{ o.id_orden }}/estado" class="d-inline">
+                <input type="hidden" name="estado" value="Procesado">
+                <input type="hidden" name="next" value="/ordenes/">
+                <button type="submit" class="btn btn-outline-success btn-sm" title="Marcar como procesada">
+                  <i class="bi bi-check2-circle"></i>
+                </button>
+              </form>
+              {% elif o.estado == 'Procesado' %}
+              <form method="post" action="/ordenes/{{ o.id_orden }}/estado" class="d-inline">
+                <input type="hidden" name="estado" value="Enviado">
+                <input type="hidden" name="next" value="/ordenes/">
+                <button type="submit" class="btn btn-outline-info btn-sm" title="Marcar como enviada">
+                  <i class="bi bi-truck"></i>
+                </button>
+              </form>
+              {% elif o.estado == 'Enviado' %}
+              <form method="post" action="/ordenes/{{ o.id_orden }}/estado" class="d-inline">
+                <input type="hidden" name="estado" value="Entregado">
+                <input type="hidden" name="next" value="/ordenes/">
+                <button type="submit" class="btn btn-outline-success btn-sm" title="Marcar como entregada">
+                  <i class="bi bi-house-check"></i>
+                </button>
+              </form>
+              {% endif %}
+              {% if o.estado in ['Pendiente', 'Procesado'] %}
+              <form method="post" action="/ordenes/{{ o.id_orden }}/cancelar" class="d-inline">
+                <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('¿Cancelar esta orden?')">
+                  <i class="bi bi-x-circle"></i>
+                </button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/ordenes-lista.js') }}"></script>
+{% endblock %}

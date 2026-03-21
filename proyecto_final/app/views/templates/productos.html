@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Productos | ProPat{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="bg-white border rounded p-4">
+      <h1 class="h5 mb-3">Alta basica de producto</h1>
+      <div id="productAlert" class="alert d-none"></div>
+      <p class="small-muted">Si falla el guardado, revisa que hayas iniciado sesion con un usuario administrativo.</p>
+      <form id="productForm" class="row g-2">
+        <div class="col-12"><input class="form-control" name="nombre" placeholder="Nombre"></div>
+        <div class="col-12"><input class="form-control" name="descripcion" placeholder="Descripcion"></div>
+        <div class="col-12"><input class="form-control" name="fotografia_url" placeholder="URL de foto"></div>
+        <div class="col-12"><input class="form-control" name="color_estilo" placeholder="Color o estilo"></div>
+        <div class="col-12"><input class="form-control" name="codigo_barras" placeholder="Codigo de barras"></div>
+        <div class="col-6"><input class="form-control" name="precio_base" type="number" step="0.01" placeholder="Precio base"></div>
+        <div class="col-6"><input class="form-control" name="stock" type="number" placeholder="Stock"></div>
+        <div class="col-12"><button class="btn btn-dark w-100" type="submit">Guardar producto</button></div>
+      </form>
+    </div>
+  </div>
+  <div class="col-lg-8">
+    <div class="bg-white border rounded p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h5 mb-0">Catalogo</h2>
+        <button class="btn btn-sm btn-outline-secondary" id="reloadProducts">Recargar</button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Producto</th>
+              <th>Precio final</th>
+              <th>Stock</th>
+            </tr>
+          </thead>
+          <tbody id="productsTable">
+            <tr><td colspan="4" class="text-muted">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function loadProducts() {
+  const response = await fetch("/api/v1/productos");
+  const data = await response.json();
+  const body = $("#productsTable");
+  body.empty();
+  if (!data.length) {
+    body.append(`<tr><td colspan="4" class="text-muted">Sin productos cargados</td></tr>`);
+    return;
+  }
+  data.forEach(item => {
+    body.append(`
+      <tr>
+        <td>${item.id_producto}</td>
+        <td>
+          <strong>${item.nombre}</strong><br>
+          <small class="text-muted">${item.color_estilo || "-"}</small>
+        </td>
+        <td>${item.precio_actual}</td>
+        <td>${item.stock}</td>
+      </tr>
+    `);
+  });
+}
+
+$("#reloadProducts").on("click", loadProducts);
+
+$("#productForm").on("submit", async function (event) {
+  event.preventDefault();
+  const payload = {
+    nombre: $(this).find("[name='nombre']").val(),
+    descripcion: $(this).find("[name='descripcion']").val(),
+    fotografia_url: $(this).find("[name='fotografia_url']").val(),
+    color_estilo: $(this).find("[name='color_estilo']").val(),
+    codigo_barras: $(this).find("[name='codigo_barras']").val(),
+    precio_base: Number($(this).find("[name='precio_base']").val()),
+    iva_porcentaje: 13,
+    stock: Number($(this).find("[name='stock']").val()),
+    activo: true
+  };
+  const response = await fetch("/api/v1/productos", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json();
+  const alert = $("#productAlert");
+  if (!response.ok) {
+    alert.removeClass("d-none alert-success").addClass("alert-danger").text(data.error || "No fue posible guardar");
+    return;
+  }
+  alert.removeClass("d-none alert-danger").addClass("alert-success").text("Producto guardado");
+  this.reset();
+  loadProducts();
+});
+
+loadProducts();
+</script>
+{% endblock %}

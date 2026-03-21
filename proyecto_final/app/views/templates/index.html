@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio | ProPat{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="bg-white border rounded p-4">
+      <p class="text-uppercase small text-muted mb-2">Caso 5</p>
+      <h1 class="h3">Sistema web de ventas para ProPat S.A.</h1>
+      <p class="mb-4">Frontend rustico inicial para validar flujo de productos, clientes, pedidos y pagos.</p>
+      <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-dark" href="/login">Entrar al sistema</a>
+        <a class="btn btn-outline-secondary" href="/registro">Registro de cliente</a>
+        <a class="btn btn-outline-secondary" href="/productos">Ver catalogo</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="placeholder-panel h-100">
+      <div class="mb-3">[banner aqui]</div>
+      <p class="mb-1"><strong>Mision:</strong></p>
+      <p class="small">"Ser un proveedor de confianza para los clientes, brindando productos de calidad"</p>
+      <p class="mb-1"><strong>Vision:</strong></p>
+      <p class="small">"Ser la empresa distribuidora de patitos de hule"</p>
+      <p class="mb-0"><strong>Contacto:</strong> [correo aqui] / [telefono aqui]</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} — ShopEasy CRM{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block breadcrumb %}
+  <li class="breadcrumb-item active">{{ title }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white border-bottom py-3">
+        <h6 class="mb-0 fw-semibold">
+          {% if action == 'crear' %}
+          <i class="bi bi-person-plus text-success me-2"></i>Datos del nuevo usuario
+          {% else %}
+          <i class="bi bi-pencil-square text-primary me-2"></i>Modificar usuario
+          {% if usuario_id %}<span class="text-muted fw-normal small ms-2">ID #{{ usuario_id }}</span>{% endif %}
+          {% endif %}
+        </h6>
+      </div>
+
+      <div class="card-body p-4">
+        <form method="POST">
+
+          <div class="row g-3">
+
+            <!-- Username -->
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Nombre de usuario <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                <input type="text" name="username" class="form-control"
+                       value="{{ usuario.username or '' }}"
+                       placeholder="ej. jperez" required>
+              </div>
+            </div>
+
+            <!-- Cédula -->
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Persona <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person-vcard"></i></span>
+                <select name="cedula_persona" class="form-select" required>
+                  <option value="">Seleccionar persona...</option>
+                  {% for persona in personas %}
+                  <option value="{{ persona.cedula }}" {% if usuario.cedula_persona == persona.cedula %}selected{% endif %}>
+                    {{ persona.nombre }} {{ persona.apellido }} · {{ persona.cedula }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="form-text">Solo se muestran personas disponibles o la asignada al usuario actual.</div>
+            </div>
+
+            <!-- Contraseña -->
+            <div class="col-md-6">
+              <label class="form-label fw-medium">
+                Contraseña {% if action == 'crear' %}<span class="text-danger">*</span>{% else %}<span class="text-muted small">(vacío = no cambiar)</span>{% endif %}
+              </label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                <input type="password" name="password" class="form-control" id="inputPassword"
+                       placeholder="••••••••"
+                       {% if action == 'crear' %}required{% endif %}>
+                <button class="btn btn-outline-secondary" type="button" onclick="togglePwd()">
+                  <i class="bi bi-eye" id="eye-icon"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Rol -->
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Rol <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-shield"></i></span>
+                <select name="id_rol" class="form-select" required>
+                  <option value="">Seleccionar rol...</option>
+                  {% for rol in roles %}
+                  <option value="{{ rol.id_rol }}" {% if usuario.id_rol == rol.id_rol %}selected{% endif %}>{{ rol.nombre_rol }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <!-- Estado -->
+            <div class="col-12">
+              <label class="form-label fw-medium d-block">Estado</label>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" name="activo" id="switchActivo"
+                       {% if usuario.activo == 1 or action == 'crear' %}checked{% endif %}
+                       onchange="document.getElementById('estadoLabel').textContent = this.checked ? 'Activo' : 'Inactivo'">
+                <label class="form-check-label" for="switchActivo" id="estadoLabel">
+                  {{ 'Activo' if (usuario.activo == 1 or action == 'crear') else 'Inactivo' }}
+                </label>
+              </div>
+            </div>
+
+          </div><!-- /row -->
+
+          <hr class="my-4">
+
+          <div class="d-flex justify-content-end gap-2">
+            <a href="/usuarios/" class="btn btn-secondary">
+              <i class="bi bi-arrow-left me-1"></i>Cancelar
+            </a>
+            <button type="submit" class="btn btn-{{ 'success' if action == 'crear' else 'primary' }}">
+              {% if action == 'crear' %}
+              <i class="bi bi-plus-circle me-1"></i>Crear Usuario
+              {% else %}
+              <i class="bi bi-check-circle me-1"></i>Guardar Cambios
+              {% endif %}
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+    <div class="alert alert-info border-0 mt-3 small">
+      <i class="bi bi-info-circle me-1"></i>
+      Los campos marcados con <strong class="text-danger">*</strong> son obligatorios.
+      El usuario debe vincularse a una persona ya registrada.
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/usuarios-form.js') }}"></script>
+{% endblock %}

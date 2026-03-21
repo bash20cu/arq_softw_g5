@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Registro | ProPat{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="bg-white border rounded p-4">
+      <h1 class="h4 mb-3">Registro de cliente</h1>
+      <div id="registerAlert" class="alert d-none"></div>
+      <form id="registerForm" class="row g-3">
+        <div class="col-md-6"><input class="form-control" name="cedula_persona" placeholder="Cedula"></div>
+        <div class="col-md-6"><input class="form-control" name="telefono" placeholder="Telefono"></div>
+        <div class="col-md-6"><input class="form-control" name="nombre" placeholder="Nombre"></div>
+        <div class="col-md-6"><input class="form-control" name="apellido" placeholder="Apellido"></div>
+        <div class="col-12"><input class="form-control" name="email" placeholder="Correo"></div>
+        <div class="col-12"><input class="form-control" name="direccion" placeholder="Direccion"></div>
+        <div class="col-md-6"><input class="form-control" name="username" placeholder="Usuario"></div>
+        <div class="col-md-6"><input class="form-control" type="password" name="password" placeholder="Password"></div>
+        <div class="col-12"><button class="btn btn-dark" type="submit">Crear cuenta</button></div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$("#registerForm").on("submit", async function (event) {
+  event.preventDefault();
+  const form = $(this);
+  const payload = {
+    cedula_persona: form.find("[name='cedula_persona']").val(),
+    telefono: form.find("[name='telefono']").val(),
+    nombre: form.find("[name='nombre']").val(),
+    apellido: form.find("[name='apellido']").val(),
+    email: form.find("[name='email']").val(),
+    direccion: form.find("[name='direccion']").val(),
+    username: form.find("[name='username']").val(),
+    password: form.find("[name='password']").val(),
+    activo: true
+  };
+  const response = await fetch("/api/v1/auth/registro", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json();
+  const alert = $("#registerAlert");
+  if (!response.ok) {
+    alert.removeClass("d-none alert-success").addClass("alert-danger").text(data.error || "No fue posible registrar");
+    return;
+  }
+  alert.removeClass("d-none alert-danger").addClass("alert-success").text("Registro completado. Ya puedes iniciar sesion.");
+  form.trigger("reset");
+});
+</script>
+{% endblock %}

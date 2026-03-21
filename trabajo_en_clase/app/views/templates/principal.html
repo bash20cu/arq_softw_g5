@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Principal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/principal.css') }}">
+</head>
+<body class="app-layout bg-light">
+  {% include "partials/banner.html" %}
+
+  <main class="container py-4 app-main">
+    <section class="card principal-hero shadow-sm mb-4">
+      <div class="card-body">
+        <h1 class="h4 mb-2">Panel principal</h1>
+        <p class="mb-1" id="principalWelcome">Cargando usuario...</p>
+        <small>Resumen operativo de ordenes, envios y soporte.</small>
+      </div>
+    </section>
+
+    <div id="principalEstado" class="alert alert-secondary">Cargando menu principal...</div>
+
+    <section class="row g-3 mb-4">
+      <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-body">
+            <div class="text-muted small">Ordenes pendientes</div>
+            <div class="kpi-value" id="kpiOrdenes">-</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-body">
+            <div class="text-muted small">Envios en ruta</div>
+            <div class="kpi-value" id="kpiEnvios">-</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-body">
+            <div class="text-muted small">Casos soporte abiertos</div>
+            <div class="kpi-value" id="kpiSoporte">-</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="h5 mb-3">Modulos</h2>
+      <div class="row g-3" id="principalModulos"></div>
+    </section>
+
+    <section class="mt-4">
+      <h2 class="h5 mb-3">Accesos rápidos</h2>
+      <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-outline-primary" href="/personas/">Ver personas</a>
+        <a class="btn btn-outline-primary" href="/clientes/">Ver clientes</a>
+        <a class="btn btn-outline-success" href="/clientes/nuevo">Crear cliente</a>
+        <a class="btn btn-outline-success" href="/personas/nuevo">Crear persona</a>
+        <a class="btn btn-outline-primary" href="/usuarios/">Ver usuarios</a>
+        <a class="btn btn-outline-success" href="/usuarios/nuevo">Crear usuario</a>
+        <a class="btn btn-outline-primary" href="/productos/">Ver productos</a>
+        <a class="btn btn-outline-primary" href="/campanias/">Ver campañas</a>
+        <a class="btn btn-outline-success" href="/ordenes/nuevo">Generar orden</a>
+      </div>
+    </section>
+  </main>
+
+  {% include "partials/footer.html" %}
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="{{ url_for('static', filename='js/principal.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Campaña #{{ campania.id_campania }} — ShopEasy CRM{% endblock %}
+{% block page_title %}Detalle de Campaña{% endblock %}
+{% block breadcrumb %}
+  <li class="breadcrumb-item"><a href="/campanias/" class="text-decoration-none">Campañas</a></li>
+  <li class="breadcrumb-item active">#{{ campania.id_campania }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-body d-flex justify-content-between align-items-center p-4">
+        <div>
+          <h5 class="mb-1 fw-bold">{{ campania.nombre }}</h5>
+          <div class="text-muted small">ID #{{ campania.id_campania }}</div>
+        </div>
+        <a href="/campanias/{{ campania.id_campania }}/editar" class="btn btn-outline-primary btn-sm">
+          <i class="bi bi-pencil me-1"></i>Editar
+        </a>
+      </div>
+    </div>
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-0">
+        <table class="table table-borderless mb-0">
+          <tbody>
+            <tr class="border-bottom">
+              <td class="ps-4 text-muted fw-medium" style="width:35%">Nombre</td>
+              <td>{{ campania.nombre }}</td>
+            </tr>
+            <tr class="border-bottom">
+              <td class="ps-4 text-muted fw-medium">Fecha inicio</td>
+              <td>{{ campania.fecha_inicio.strftime('%d/%m/%Y') if campania.fecha_inicio else '—' }}</td>
+            </tr>
+            <tr class="border-bottom">
+              <td class="ps-4 text-muted fw-medium">Fecha fin</td>
+              <td>{{ campania.fecha_fin.strftime('%d/%m/%Y') if campania.fecha_fin else '—' }}</td>
+            </tr>
+            <tr>
+              <td class="ps-4 text-muted fw-medium">Descripción</td>
+              <td>{{ campania.descripcion or 'Sin descripción' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

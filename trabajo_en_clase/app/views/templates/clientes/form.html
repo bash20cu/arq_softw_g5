@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} — ShopEasy CRM{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block breadcrumb %}
+  <li class="breadcrumb-item"><a href="/clientes/" class="text-decoration-none">Clientes</a></li>
+  <li class="breadcrumb-item active">{{ title }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white border-bottom py-3">
+        <h6 class="mb-0 fw-semibold">
+          {% if action == 'crear' %}
+          <i class="bi bi-person-plus text-success me-2"></i>Datos del nuevo cliente
+          {% else %}
+          <i class="bi bi-pencil-square text-primary me-2"></i>Modificar cliente
+          {% if cliente_id %}<span class="text-muted fw-normal small ms-2">ID {{ cliente_id }}</span>{% endif %}
+          {% endif %}
+        </h6>
+      </div>
+      <div class="card-body p-4">
+        <form method="POST">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Tipo de cliente <span class="text-danger">*</span></label>
+              {% set tipo_actual = cliente.tipo_cliente or 'Persona' %}
+              <div class="d-flex gap-3 pt-2" id="tipoClienteGroup">
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="tipo_cliente" id="tipoPersona" value="Persona" {% if tipo_actual == 'Persona' %}checked{% endif %}>
+                  <label class="form-check-label" for="tipoPersona">Persona</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="tipo_cliente" id="tipoEmpresa" value="Empresa" {% if tipo_actual == 'Empresa' %}checked{% endif %}>
+                  <label class="form-check-label" for="tipoEmpresa">Empresa</label>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Cédula Persona asociada</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
+                <input type="text" name="cedula_persona" class="form-control" value="{{ cliente.cedula_persona or '' }}" placeholder="Opcional">
+              </div>
+              <div class="form-text">Si existe en Persona, se tomará esa información como referencia.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Estado cliente</label>
+              <select name="estado_cliente" class="form-select">
+                {% set estado_actual = cliente.estado_cliente or 'Activo' %}
+                {% for estado in ['Activo', 'Inactivo', 'VIP', 'Moroso'] %}
+                <option value="{{ estado }}" {% if estado_actual == estado %}selected{% endif %}>{{ estado }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium" id="labelNombre">Nombre <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                <input type="text" name="nombre" id="inputNombre" class="form-control" value="{{ cliente.nombre or '' }}" required>
+              </div>
+            </div>
+            <div class="col-md-6" id="apellidoGroup">
+              <label class="form-label fw-medium" id="labelApellido">Apellido <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+                <input type="text" name="apellido" id="inputApellido" class="form-control" value="{{ cliente.apellido or '' }}">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Email <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                <input type="email" name="email" class="form-control" value="{{ cliente.email or '' }}" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Teléfono</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                <input type="text" name="telefono" class="form-control" value="{{ cliente.telefono or '' }}">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Puntos lealtad</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-award"></i></span>
+                <input type="number" min="0" name="puntos_lealtad" class="form-control" value="{{ cliente.puntos_lealtad if cliente.puntos_lealtad is not none else 0 }}">
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Provincia</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-map"></i></span>
+                <select id="provinciaSelect" class="form-select" data-selected="{{ location.id_provincia or '' }}">
+                  <option value="">Seleccionar provincia...</option>
+                  {% for provincia in provincias %}
+                  <option value="{{ provincia.id_provincia }}" {% if location.id_provincia == provincia.id_provincia %}selected{% endif %}>
+                    {{ provincia.nombre }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Cantón</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-signpost"></i></span>
+                <select id="cantonSelect" class="form-select" data-selected="{{ location.id_canton or '' }}">
+                  <option value="">Seleccionar cantón...</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Distrito</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                <select name="id_distrito" id="distritoSelect" class="form-select" data-selected="{{ location.id_distrito or '' }}">
+                  <option value="">Sin distrito</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <hr class="my-4">
+
+          <div class="d-flex justify-content-end gap-2">
+            <a href="/clientes/" class="btn btn-secondary">
+              <i class="bi bi-arrow-left me-1"></i>Cancelar
+            </a>
+            <button type="submit" class="btn btn-{{ 'success' if action == 'crear' else 'primary' }}">
+              {% if action == 'crear' %}
+              <i class="bi bi-plus-circle me-1"></i>Crear Cliente
+              {% else %}
+              <i class="bi bi-check-circle me-1"></i>Guardar Cambios
+              {% endif %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/clientes-form.js') }}"></script>
+{% endblock %}
