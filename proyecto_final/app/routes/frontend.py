@@ -43,6 +43,21 @@ def order_status_page():
     return render_template("consulta_pedido.html")
 
 
+@frontend_bp.get("/paypal/retorno")
+def paypal_return_page():
+    if session.get("user") is None:
+        return redirect(url_for("frontend.login_page"))
+    # The frontend captures the PayPal token after redirect and shows the result.
+    return render_template("paypal_result.html", flow_state="approved")
+
+
+@frontend_bp.get("/paypal/cancelado")
+def paypal_cancel_page():
+    if session.get("user") is None:
+        return redirect(url_for("frontend.login_page"))
+    return render_template("paypal_result.html", flow_state="cancelled")
+
+
 @frontend_bp.get("/logout")
 def logout_page():
     session.clear()

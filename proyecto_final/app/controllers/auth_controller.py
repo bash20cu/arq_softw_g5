@@ -8,8 +8,10 @@ class AuthController:
 
     @staticmethod
     def build_session_user(user) -> dict:
+        # Store only the minimum identity data required for authorization checks.
         return {
             "id_usuario": user.id_usuario,
             "username": user.username,
+            "cedula_persona": user.cedula_persona,
             "id_rol": user.id_rol,
         }

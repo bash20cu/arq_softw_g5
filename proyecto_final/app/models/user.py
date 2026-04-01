@@ -4,6 +4,16 @@ from app.database import db
 from werkzeug.security import check_password_hash, generate_password_hash
 
 
+def _serialize_datetime(value):
+    # SQL Server can occasionally materialize DATETIME values as strings depending
+    # on driver behavior, so user-facing payloads normalize both representations.
+    if value is None:
+        return None
+    if hasattr(value, "isoformat"):
+        return value.isoformat()
+    return str(value)
+
+
 class Persona(db.Model):
     __tablename__ = "persona"
 
@@ -29,9 +39,7 @@ class Persona(db.Model):
             "email": self.email,
             "telefono": self.telefono,
             "id_distrito": self.id_distrito,
-            "fecha_registro": self.fecha_registro.isoformat()
-            if self.fecha_registro
-            else None,
+            "fecha_registro": _serialize_datetime(self.fecha_registro),
         }
 
 
@@ -138,7 +146,5 @@ class Factura(db.Model):
             "id_factura": self.id_factura,
             "numero_factura": self.numero_factura,
             "monto_total": self.monto_total,
-            "fecha_emision": self.fecha_emision.isoformat()
-            if self.fecha_emision
-            else None,
+            "fecha_emision": _serialize_datetime(self.fecha_emision),
         }

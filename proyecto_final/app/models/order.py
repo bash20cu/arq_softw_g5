@@ -3,6 +3,16 @@ from datetime import datetime
 from app.database import db
 
 
+def _serialize_datetime(value):
+    # Some SQL Server / ODBC combinations can hand back datetime columns as strings,
+    # so the API serializer needs to tolerate both Python datetime objects and text.
+    if value is None:
+        return None
+    if hasattr(value, "isoformat"):
+        return value.isoformat()
+    return str(value)
+
+
 class Order(db.Model):
     __tablename__ = "orden_compra"
 
@@ -30,7 +40,7 @@ class Order(db.Model):
             "id_orden": self.id_orden,
             "id_cliente": self.id_cliente,
             "id_usuario": self.id_usuario,
-            "fecha_orden": self.fecha_orden.isoformat() if self.fecha_orden else None,
+            "fecha_orden": _serialize_datetime(self.fecha_orden),
             "estado": self.estado,
             "nombre_cliente": self.cliente.nombre_completo if self.cliente else None,
             "nombre_usuario": self.usuario.to_dict().get("nombre_persona") if self.usuario else None,
@@ -76,6 +86,8 @@ class Payment(db.Model):
     id_orden = db.Column(db.Integer, db.ForeignKey("orden_compra.id_orden"), nullable=False)
     proveedor = db.Column(db.String(50), nullable=False)
     referencia_externa = db.Column(db.String(120), nullable=True)
+    # Persist the approval URL so a pending PayPal checkout can be resumed later.
+    approve_url = db.Column(db.String(500), nullable=True)
     monto = db.Column(db.Numeric(12, 2), nullable=False)
     estado = db.Column(db.String(30), nullable=False, default="Pendiente")
     fecha_pago = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
@@ -88,7 +100,8 @@ class Payment(db.Model):
             "id_orden": self.id_orden,
             "proveedor": self.proveedor,
             "referencia_externa": self.referencia_externa,
+            "approve_url": self.approve_url,
             "monto": float(self.monto),
             "estado": self.estado,
-            "fecha_pago": self.fecha_pago.isoformat() if self.fecha_pago else None,
+            "fecha_pago": _serialize_datetime(self.fecha_pago),
         }
