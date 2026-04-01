@@ -42,10 +42,11 @@
               <th>Cliente</th>
               <th>Estado</th>
               <th>Total</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody id="ordersTable">
-            <tr><td colspan="4" class="text-muted">Cargando...</td></tr>
+            <tr><td colspan="5" class="text-muted">Cargando...</td></tr>
           </tbody>
         </table>
       </div>
@@ -127,6 +128,26 @@ function showAlert(target, type, message) {
        .text(message);
 }
 
+function renderOrderActions(item) {
+  if (!item.available_transitions || !item.available_transitions.length) {
+    return `<span class="text-muted">Sin acciones</span>`;
+  }
+
+  return `
+    <div class="d-flex flex-wrap gap-2">
+      ${item.available_transitions.map(state => `
+        <button
+          class="btn btn-sm ${state === 'Cancelado' ? 'btn-outline-danger' : 'btn-outline-dark'} change-order-state"
+          type="button"
+          data-order-id="${item.id_orden}"
+          data-next-state="${state}">
+          ${state}
+        </button>
+      `).join("")}
+    </div>
+  `;
+}
+
 function renderPaymentActions(item) {
   // Pending payments can either be resumed in PayPal or canceled to generate a
   // fresh checkout for the same order.
@@ -151,6 +172,10 @@ async function loadClients() {
   const data = await response.json();
   const select = $("#clientSelect");
   select.empty();
+  if (!response.ok) {
+    showAlert("#orderAlert", "danger", data.error || "No fue posible cargar clientes");
+    return;
+  }
   data.forEach(item => {
     select.append(`<option value="${item.id_cliente}">${item.nombre_completo}</option>`);
   });
@@ -161,6 +186,10 @@ async function loadProductsForOrders() {
   const data = await response.json();
   const select = $("#productSelect");
   select.empty();
+  if (!response.ok) {
+    showAlert("#orderAlert", "danger", data.error || "No fue posible cargar productos");
+    return;
+  }
   data.forEach(item => {
     select.append(`<option value="${item.id_producto}">${item.nombre} (${item.stock})</option>`);
   });
@@ -171,8 +200,13 @@ async function loadOrders() {
   const data = await response.json();
   const body = $("#ordersTable");
   body.empty();
+  if (!response.ok) {
+    showAlert("#orderAlert", "danger", data.error || "No fue posible cargar las ordenes");
+    body.append(`<tr><td colspan="5" class="text-muted">Error cargando ordenes</td></tr>`);
+    return;
+  }
   if (!data.length) {
-    body.append(`<tr><td colspan="4" class="text-muted">Sin ordenes registradas</td></tr>`);
+    body.append(`<tr><td colspan="5" class="text-muted">Sin ordenes registradas</td></tr>`);
     return;
   }
   data.forEach(item => {
@@ -182,6 +216,7 @@ async function loadOrders() {
         <td>${item.nombre_cliente || item.id_cliente}</td>
         <td>${item.estado}</td>
         <td>${item.total}</td>
+        <td>${renderOrderActions(item)}</td>
       </tr>
     `);
   });
@@ -245,10 +280,33 @@ async function loadPayments(orderId) {
   });
 }
 
-$("#ordersTable").on("click", ".order-row", function () {
+$("#ordersTable").on("click", ".order-row", function (event) {
+  if ($(event.target).closest("button, a").length) {
+    return;
+  }
   const orderId = $(this).data("order-id");
   $("[name='order_id']").val(orderId);
   loadPayments(orderId);
+});
+
+$("#ordersTable").on("click", ".change-order-state", async function () {
+  const orderId = $(this).data("order-id");
+  const nextState = $(this).data("next-state");
+  const response = await fetch(`/api/v1/ordenes/${orderId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ estado: nextState })
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    showAlert("#orderAlert", "danger", data.error || "No fue posible cambiar el estado de la orden");
+    return;
+  }
+
+  showAlert("#orderAlert", "success", `Orden ${orderId} actualizada a "${data.estado}"`);
+  $("[name='order_id']").val(orderId);
+  await loadOrders();
+  await loadPayments(orderId);
 });
 
 $("#createPaypalOrder").on("click", async function () {
