@@ -1,7 +1,7 @@
 from decimal import Decimal
 from functools import wraps
 
-from flask import Blueprint, request, session
+from flask import Blueprint, request, session, url_for
 from sqlalchemy.exc import IntegrityError
 
 from app.controllers.auth_controller import AuthController
@@ -55,6 +55,48 @@ def roles_required(*allowed_roles):
         return wrapper
 
     return decorator
+
+
+def _session_user() -> dict:
+    user = session.get("user")
+    if user is None:
+        raise PermissionError("sesion no verificada")
+    return user
+
+
+def _is_staff(user: dict) -> bool:
+    return user.get("id_rol") in {ROLE_ADMIN, ROLE_EMPLEADO}
+
+
+def _get_current_client():
+    # Client users are allowed to inspect only their own customer record/orders.
+    user = _session_user()
+    if user.get("id_rol") != ROLE_CLIENTE:
+        return None
+    client = ClientController.get_client_by_cedula(user.get("cedula_persona") or "")
+    if client is None:
+        raise PermissionError("forbidden")
+    return client
+
+
+def _ensure_client_access(cliente):
+    user = _session_user()
+    if _is_staff(user):
+        return
+
+    current_client = _get_current_client()
+    if current_client is None or current_client.id_cliente != cliente.id_cliente:
+        raise PermissionError("forbidden")
+
+
+def _ensure_order_access(order):
+    user = _session_user()
+    if _is_staff(user):
+        return
+
+    current_client = _get_current_client()
+    if current_client is None or current_client.id_cliente != order.id_cliente:
+        raise PermissionError("forbidden")
 
 
 @api_v1_bp.get("/health")
@@ -188,6 +230,10 @@ def get_cliente(client_id: int):
     cliente = ClientController.get_client_by_id(client_id)
     if cliente is None:
         return error_response("cliente no encontrado", 404)
+    try:
+        _ensure_client_access(cliente)
+    except PermissionError as exc:
+        return error_response(str(exc), 403)
     return cliente.to_dict(), 200
 
 
@@ -502,6 +548,10 @@ def get_order(order_id: int):
     order = OrderController.get_order_by_id(order_id)
     if order is None:
         return error_response("orden no encontrada", 404)
+    try:
+        _ensure_order_access(order)
+    except PermissionError as exc:
+        return error_response(str(exc), 403)
     payload = order.to_dict(include_details=True)
     payload["total"] = OrderController.calculate_total(order)
     return payload, 200
@@ -513,6 +563,10 @@ def get_order_status(order_id: int):
     order = OrderController.get_order_by_id(order_id)
     if order is None:
         return error_response("orden no encontrada", 404)
+    try:
+        _ensure_order_access(order)
+    except PermissionError as exc:
+        return error_response(str(exc), 403)
     return {
         "id_orden": order.id_orden,
         "estado": order.estado,
@@ -600,6 +654,10 @@ def list_order_payments(order_id: int):
     order = OrderController.get_order_by_id(order_id)
     if order is None:
         return error_response("orden no encontrada", 404)
+    try:
+        _ensure_order_access(order)
+    except PermissionError as exc:
+        return error_response(str(exc), 403)
     payments = PaymentController.list_payments_for_order(order_id)
     return [payment.to_dict() for payment in payments], 200
 
@@ -617,12 +675,57 @@ def create_paypal_payment(order_id: int):
             order=order,
             amount=amount,
             currency="USD",
+            # PayPal redirects back here after approval/cancel so the UI can capture
+            # and report the final result without manual token handling.
+            return_url=url_for("frontend.paypal_return_page", _external=True),
+            cancel_url=url_for("frontend.paypal_cancel_page", _external=True),
         )
     except ValueError as exc:
         db.session.rollback()
         return error_response(str(exc), 400)
 
     return payload, 201
+
+
+@api_v1_bp.post("/pagos/paypal/capturar-por-referencia")
+@roles_required(ROLE_ADMIN, ROLE_EMPLEADO)
+def capture_payment_by_reference():
+    # This is used by the PayPal return screen, which receives the checkout token
+    # rather than the local payment id.
+    payload = request.get_json(silent=True) or {}
+    reference = (payload.get("reference") or payload.get("token") or "").strip()
+    if not reference:
+        return error_response("reference es obligatoria", 400)
+
+    payment = PaymentController.get_payment_by_reference(reference)
+    if payment is None:
+        return error_response("pago no encontrado", 404)
+
+    try:
+        response_payload = PaymentController.capture_paypal_order(payment)
+    except ValueError as exc:
+        db.session.rollback()
+        return error_response(str(exc), 400)
+
+    return response_payload, 200
+
+
+@api_v1_bp.post("/pagos/<int:payment_id>/cancelar")
+@roles_required(ROLE_ADMIN, ROLE_EMPLEADO)
+def cancel_payment(payment_id: int):
+    # A pending payment can be canceled to unlock the order for a fresh PayPal
+    # checkout when the approval URL was lost or the buyer abandoned the flow.
+    payment = PaymentController.get_payment_by_id(payment_id)
+    if payment is None:
+        return error_response("pago no encontrado", 404)
+
+    try:
+        canceled = PaymentController.cancel_pending_payment(payment)
+    except ValueError as exc:
+        db.session.rollback()
+        return error_response(str(exc), 400)
+
+    return canceled.to_dict(), 200
 
 
 @api_v1_bp.post("/pagos/<int:payment_id>/capturar")

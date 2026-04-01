@@ -13,11 +13,17 @@ def _build_database_uri(
     database: str,
     driver: str,
 ) -> str:
+    # Match the same driver compatibility rule used by the Flask app config so
+    # bootstrap works with both the legacy "SQL Server" driver and Driver 18.
+    query_params = [f"driver={quote_plus(driver)}"]
+    if driver.strip().lower() != "sql server":
+        query_params.append("TrustServerCertificate=yes")
+
     return (
         "mssql+pyodbc://"
         f"{quote_plus(user)}:{quote_plus(password)}@"
         f"{host}:{port}/{quote_plus(database)}"
-        f"?driver={quote_plus(driver)}&TrustServerCertificate=yes"
+        f"?{'&'.join(query_params)}"
     )
 
 

@@ -1,7 +1,5 @@
 from decimal import Decimal, InvalidOperation
 
-from sqlalchemy import func
-
 from app.database import db
 from app.models.product import Product
 
@@ -99,7 +97,10 @@ class ProductController:
 
     @staticmethod
     def _validate_unique_name(value: str, current_product_id: int | None = None) -> None:
-        query = Product.query.filter(func.lower(Product.nombre) == value.lower())
+        # SQL Server commonly runs under case-insensitive collation, so a direct
+        # equality comparison avoids driver issues from LOWER(...) while preserving
+        # the uniqueness rule in practice for this deployment target.
+        query = Product.query.filter(Product.nombre == value)
         if current_product_id is not None:
             query = query.filter(Product.id_producto != current_product_id)
         if query.first() is not None:

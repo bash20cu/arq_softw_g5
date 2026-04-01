@@ -9,6 +9,7 @@ from urllib.request import Request, urlopen
 
 import certifi
 
+from app.controllers.order_controller import OrderController
 from app.database import db
 from app.models.order import Order, Payment
 
@@ -29,7 +30,32 @@ class PaymentController:
         return Payment.query.filter_by(referencia_externa=reference).first()
 
     @staticmethod
-    def create_paypal_order(order: Order, amount: Decimal, currency: str) -> dict:
+    def get_latest_payment_for_order(order_id: int, provider: str) -> Payment | None:
+        # We gate new PayPal orders off the latest payment to prevent duplicate
+        # pending checkouts for the same order.
+        return (
+            Payment.query.filter_by(id_orden=order_id, proveedor=provider)
+            .order_by(Payment.id_pago.desc())
+            .first()
+        )
+
+    @staticmethod
+    def create_paypal_order(
+        order: Order,
+        amount: Decimal,
+        currency: str,
+        *,
+        return_url: str | None = None,
+        cancel_url: str | None = None,
+    ) -> dict:
+        # Only one active PayPal checkout should exist per order at a time.
+        existing_payment = PaymentController.get_latest_payment_for_order(order.id_orden, "paypal")
+        if existing_payment is not None:
+            if existing_payment.estado == "Pendiente":
+                raise ValueError("ya existe un pago paypal pendiente para esta orden")
+            if existing_payment.estado == "Aprobado":
+                raise ValueError("la orden ya tiene un pago paypal aprobado")
+
         access_token = PaymentController._get_paypal_access_token()
         payload = {
             "intent": "CAPTURE",
@@ -42,8 +68,19 @@ class PaymentController:
                     },
                     "description": f"Orden ProPat #{order.id_orden}",
                 }
-            ],
+            ]
         }
+        if return_url and cancel_url:
+            payload["payment_source"] = {
+                "paypal": {
+                    "experience_context": {
+                        "payment_method_preference": "IMMEDIATE_PAYMENT_REQUIRED",
+                        "user_action": "PAY_NOW",
+                        "return_url": return_url,
+                        "cancel_url": cancel_url,
+                    }
+                }
+            }
 
         response = PaymentController._paypal_request(
             method="POST",
@@ -52,12 +89,17 @@ class PaymentController:
             payload=payload,
         )
         paypal_order_id = response["id"]
+        # Some PayPal responses omit the approve HATEOAS link; in that case we
+        # derive the checkout URL from the order token so the UI can still resume it.
         approve_url = PaymentController._extract_approve_url(response)
+        if not approve_url:
+            approve_url = PaymentController._build_paypal_approve_url(paypal_order_id)
 
         payment = Payment(
             id_orden=order.id_orden,
             proveedor="paypal",
             referencia_externa=paypal_order_id,
+            approve_url=approve_url,
             monto=amount,
             estado="Pendiente",
         )
@@ -76,6 +118,18 @@ class PaymentController:
             raise ValueError("solo se soporta captura para paypal")
         if not payment.referencia_externa:
             raise ValueError("el pago no tiene referencia externa")
+        # Replaying capture on an already approved payment should be safe/idempotent.
+        if payment.estado == "Aprobado":
+            return {
+                "payment": payment.to_dict(),
+                "paypal_capture": {
+                    "id": payment.referencia_externa,
+                    "status": "COMPLETED",
+                    "idempotent": True,
+                },
+            }
+        if payment.estado != "Pendiente":
+            raise ValueError("solo se pueden capturar pagos pendientes")
 
         access_token = PaymentController._get_paypal_access_token()
         response = PaymentController._paypal_request(
@@ -93,6 +147,8 @@ class PaymentController:
 
         db.session.add(payment)
         db.session.commit()
+        # Successful payment moves the operational order forward automatically.
+        PaymentController._sync_order_after_payment(payment)
 
         return {
             "payment": payment.to_dict(),
@@ -108,6 +164,27 @@ class PaymentController:
         db.session.add(payment)
         db.session.commit()
         return payment
+
+    @staticmethod
+    def cancel_pending_payment(payment: Payment) -> Payment:
+        # Cancelling a pending checkout lets the user generate a new PayPal order
+        # without mutating the commercial order itself.
+        if payment.estado != "Pendiente":
+            raise ValueError("solo se pueden cancelar pagos pendientes")
+        payment.estado = "Cancelado"
+        db.session.add(payment)
+        db.session.commit()
+        return payment
+
+    @staticmethod
+    def _sync_order_after_payment(payment: Payment) -> None:
+        order = payment.orden
+        if order is None or payment.estado != "Aprobado":
+            return
+        if order.estado != "En preparacion":
+            return
+
+        OrderController.transition_order(order, "Listo para envio o recoleccion")
 
     @staticmethod
     def _get_paypal_access_token() -> str:
@@ -175,3 +252,10 @@ class PaymentController:
             if link.get("rel") == "approve":
                 return link.get("href")
         return None
+
+    @staticmethod
+    def _build_paypal_approve_url(reference: str) -> str:
+        base_url = os.getenv("PAYPAL_BASE_URL", "https://api-m.sandbox.paypal.com").strip().lower()
+        if "sandbox" in base_url:
+            return f"https://www.sandbox.paypal.com/checkoutnow?token={reference}"
+        return f"https://www.paypal.com/checkoutnow?token={reference}"
