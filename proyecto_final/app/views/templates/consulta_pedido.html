@@ -1,52 +1,65 @@
 {% extends "base.html" %}
-
 {% block title %}Consultar pedido | ProPat{% endblock %}
 
+{% block head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/consulta_pedido.css') }}">
+{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-lg-8">
-    <div class="bg-white border rounded p-4">
-      <h1 class="h5 mb-3">Consulta de estado de pedido</h1>
-      <p class="small-muted">Pantalla publica basica. Usa el ID de orden entregado por el sistema.</p>
-      <form id="statusForm" class="row g-2 align-items-end">
-        <div class="col-md-8">
-          <label class="form-label small">ID de orden</label>
-          <input class="form-control" name="order_id" placeholder="Ejemplo: 1">
+
+<div class="consulta-wrapper">
+
+  <div class="consulta-hero">
+    <span class="consulta-icon">📦</span>
+    <h1>Consultar pedido</h1>
+    <p>Ingresa el número de orden que recibiste al realizar tu compra.</p>
+  </div>
+
+  <div class="pp-card">
+    <form id="statusForm" class="consulta-form">
+      <div class="pp-field" style="flex:1;">
+        <label class="pp-label">Número de orden</label>
+        <input class="pp-input" name="order_id" type="number"
+               min="1" placeholder="Ej: 1" required>
+      </div>
+      <button class="btn-pp btn-pp-primary consulta-submit" type="submit">
+        Consultar →
+      </button>
+    </form>
+  </div>
+
+  <div id="statusAlert" class="pp-alert" style="margin-top:12px;"></div>
+
+  <div id="statusResult" class="pp-card consulta-result-card">
+    <div class="consulta-result-top">
+      <div class="consulta-result-id">
+        <span class="consulta-duck">🐥</span>
+        <div>
+          <div class="consulta-result-title">Orden <span id="resId"></span></div>
+          <div class="consulta-result-fecha" id="resFecha"></div>
         </div>
-        <div class="col-md-4">
-          <button class="btn btn-dark w-100" type="submit">Consultar</button>
-        </div>
-      </form>
-      <div id="statusAlert" class="alert d-none mt-3"></div>
-      <div id="statusResult" class="placeholder-panel mt-3 d-none"></div>
+      </div>
+      <div id="resBadge"></div>
+    </div>
+
+    <hr class="pp-divider">
+
+    <div class="consulta-result-grid">
+      <div>
+        <div class="consulta-result-label">Estado</div>
+        <div class="consulta-result-value" id="resEstado"></div>
+      </div>
+      <div>
+        <div class="consulta-result-label">Total</div>
+        <div class="consulta-result-total" id="resTotal"></div>
+      </div>
     </div>
   </div>
+
 </div>
+
 {% endblock %}
 
 {% block scripts %}
-<script>
-$("#statusForm").on("submit", async function (event) {
-  event.preventDefault();
-  const orderId = $(this).find("[name='order_id']").val();
-  const response = await fetch(`/api/v1/ordenes/${orderId}/estado`);
-  const data = await response.json();
-  const alert = $("#statusAlert");
-  const result = $("#statusResult");
-
-  if (!response.ok) {
-    result.addClass("d-none").empty();
-    alert.removeClass("d-none alert-success").addClass("alert-danger").text(data.error || "No fue posible consultar");
-    return;
-  }
-
-  alert.addClass("d-none").text("");
-  result.removeClass("d-none").html(`
-    <p class="mb-1"><strong>Orden:</strong> ${data.id_orden}</p>
-    <p class="mb-1"><strong>Estado:</strong> ${data.estado}</p>
-    <p class="mb-1"><strong>Fecha:</strong> ${data.fecha_orden}</p>
-    <p class="mb-0"><strong>Total:</strong> ${data.total}</p>
-  `);
-});
-</script>
+  <script src="{{ url_for('static', filename='js/consulta_pedido.js') }}"></script>
 {% endblock %}

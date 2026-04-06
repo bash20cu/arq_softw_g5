@@ -1,289 +1,153 @@
 {% extends "base.html" %}
+{% block title %}Órdenes | ProPat{% endblock %}
 
-{% block title %}Ordenes | ProPat{% endblock %}
+{% block head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/ordenes.css') }}">
+{% endblock %}
 
 {% block content %}
-<div class="row g-4">
-  <div class="col-lg-5">
-    <div class="bg-white border rounded p-4">
-      <h1 class="h5 mb-3">Crear orden simple</h1>
-      <div id="orderAlert" class="alert d-none"></div>
-      <p class="small-muted">Primero crea la orden. Luego podras usar su ID en el bloque de pagos.</p>
-      <form id="orderForm" class="row g-2">
-        <div class="col-12">
-          <label class="form-label small">Cliente</label>
-          <select class="form-select" name="id_cliente" id="clientSelect"></select>
-        </div>
-        <div class="col-12">
-          <label class="form-label small">Producto</label>
-          <select class="form-select" name="id_producto" id="productSelect"></select>
-        </div>
-        <div class="col-12">
-          <label class="form-label small">Cantidad</label>
-          <input class="form-control" type="number" name="cantidad" value="1" min="1">
-        </div>
-        <div class="col-12">
-          <button class="btn btn-dark w-100" type="submit">Crear orden</button>
-        </div>
-      </form>
-    </div>
+
+<div class="pp-page-header">
+  <div>
+    <p class="pp-subtitle">Gestión</p>
+    <h1>Órdenes 📦</h1>
+    <p>Crear, revisar y procesar pedidos.</p>
   </div>
-  <div class="col-lg-7">
-    <div class="bg-white border rounded p-4">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="h5 mb-0">Listado de ordenes</h2>
-        <button class="btn btn-sm btn-outline-secondary" id="reloadOrders">Recargar</button>
+  <button class="btn-pp btn-pp-yellow" id="btnToggleForm">+ Nueva orden</button>
+</div>
+
+<!-- Formulario nueva orden (colapsable) -->
+<div id="orderFormBox" class="pp-card order-form-box">
+  <div class="pp-card-title">Nueva orden</div>
+  <div class="pp-card-subtitle">Selecciona cliente, producto y cantidad.</div>
+
+  <div id="orderAlert" class="pp-alert"></div>
+
+  <form id="orderForm">
+    <div class="order-form-grid">
+      <div class="pp-field">
+        <label class="pp-label">Cliente *</label>
+        <select class="pp-input" id="orderClientSelect"></select>
       </div>
-      <div class="table-responsive">
-        <table class="table table-sm">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Cliente</th>
-              <th>Estado</th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody id="ordersTable">
-            <tr><td colspan="4" class="text-muted">Cargando...</td></tr>
-          </tbody>
-        </table>
+      <div class="pp-field">
+        <label class="pp-label">Producto *</label>
+        <select class="pp-input" id="orderProductSelect"></select>
+      </div>
+      <div class="pp-field">
+        <label class="pp-label">Cantidad</label>
+        <input class="pp-input" type="number" name="cantidad" value="1" min="1">
       </div>
     </div>
+    <div class="order-form-actions">
+      <button type="button" class="btn-pp btn-pp-ghost" id="btnCancelForm">Cancelar</button>
+      <button type="submit" class="btn-pp btn-pp-primary">Crear orden →</button>
+    </div>
+  </form>
+</div>
+
+<!-- Tabla de órdenes -->
+<div id="ordenePageAlert" class="pp-alert"></div>
+
+<div class="pp-card pp-table-card" style="margin-bottom:20px;">
+  <div class="pp-table-card-header">
+    <span class="pp-table-card-title">Listado de órdenes</span>
+    <button class="btn-pp btn-pp-ghost btn-pp-sm" id="reloadOrders">↻ Actualizar</button>
+  </div>
+  <div class="table-scroll">
+    <table class="pp-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Cliente</th>
+          <th>Usuario</th>
+          <th>Fecha</th>
+          <th>Estado</th>
+          <th>Total</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody id="ordersTable">
+        <tr><td colspan="7" class="table-empty">Cargando...</td></tr>
+      </tbody>
+    </table>
   </div>
 </div>
 
-<div class="row g-4 mt-1">
-  <div class="col-lg-5">
-    <div class="bg-white border rounded p-4">
-      <h2 class="h5 mb-3">Pago PayPal</h2>
-      <div id="paymentAlert" class="alert d-none"></div>
-      <form id="paymentForm" class="row g-2">
-        <div class="col-12">
-          <label class="form-label small">ID de orden</label>
-          <input class="form-control" type="number" name="order_id" placeholder="Ejemplo: 1">
-        </div>
-        <div class="col-12 d-grid gap-2">
-          <button class="btn btn-outline-dark" type="button" id="createPaypalOrder">Crear orden PayPal</button>
-          <button class="btn btn-outline-secondary" type="button" id="loadPayments">Ver pagos de la orden</button>
-        </div>
-      </form>
-      <div class="placeholder-panel mt-3">
-        <p class="mb-2"><strong>Flujo PayPal Sandbox</strong></p>
-        <p class="small-muted mb-2">1. Crear orden PayPal</p>
-        <p class="small-muted mb-2">2. Abrir el enlace de aprobacion</p>
-        <p class="small-muted mb-2">3. Aprobar el pago en sandbox</p>
-        <p class="small-muted mb-0">4. Capturar el pago</p>
-      </div>
-      <div id="approveBox" class="mt-3 d-none">
-        <a id="approveLink" class="btn btn-sm btn-primary w-100" href="#" target="_blank" rel="noopener noreferrer">Abrir aprobacion PayPal Sandbox</a>
-      </div>
-      <hr>
-      <form id="captureForm" class="row g-2">
-        <div class="col-12">
-          <label class="form-label small">ID de pago</label>
-          <input class="form-control" type="number" name="payment_id" placeholder="Ejemplo: 1">
-        </div>
-        <div class="col-12">
-          <button class="btn btn-dark w-100" type="button" id="capturePayment">Capturar pago</button>
-        </div>
-      </form>
+<!-- Sección pagos -->
+<div class="payments-grid">
+
+  <!-- Panel de control PayPal -->
+  <div class="pp-card">
+    <div class="pp-card-title">Pago PayPal Sandbox</div>
+    <div class="pp-card-subtitle">Gestiona el pago de una orden específica.</div>
+
+    <div id="paymentAlert" class="pp-alert"></div>
+
+    <div class="pp-field" style="margin-bottom:14px;">
+      <label class="pp-label">ID de orden</label>
+      <input class="pp-input" type="number" id="payOrderId" placeholder="Ej: 1">
+    </div>
+
+    <div class="paypal-buttons">
+      <button class="btn-pp btn-pp-primary" id="btnCreatePaypal">Crear orden PayPal</button>
+      <button class="btn-pp btn-pp-ghost"   id="btnLoadPayments">Ver pagos de esta orden</button>
+    </div>
+
+    <div id="approveBox" class="approve-box">
+      <a id="approveLink" class="btn-pp btn-pp-yellow approve-link"
+         href="#" target="_blank" rel="noopener noreferrer">
+        ↗ Aprobar en PayPal Sandbox
+      </a>
+    </div>
+
+    <hr class="pp-divider">
+
+    <div class="pp-field" style="margin-bottom:14px;">
+      <label class="pp-label">ID de pago</label>
+      <input class="pp-input" type="number" id="payPaymentId" placeholder="Ej: 1">
+    </div>
+    <button class="btn-pp btn-pp-primary paypal-capture" id="btnCapture">
+      Capturar pago
+    </button>
+
+    <div class="paypal-flow-box">
+      <p class="paypal-flow-title">Flujo PayPal</p>
+      <ol class="paypal-flow-list">
+        <li>Crear orden PayPal</li>
+        <li>Abrir enlace de aprobación</li>
+        <li>Aprobar el pago en sandbox</li>
+        <li>Capturar el pago</li>
+      </ol>
     </div>
   </div>
-  <div class="col-lg-7">
-    <div class="bg-white border rounded p-4">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="h5 mb-0">Pagos de la orden</h2>
-        <span class="small-muted">PayPal Sandbox</span>
-      </div>
-      <div class="table-responsive">
-        <table class="table table-sm">
-          <thead>
-            <tr>
-              <th>ID Pago</th>
-              <th>Referencia</th>
-              <th>Estado</th>
-              <th>Monto</th>
-            </tr>
-          </thead>
-          <tbody id="paymentsTable">
-            <tr><td colspan="4" class="text-muted">Sin pagos cargados</td></tr>
-          </tbody>
-        </table>
-      </div>
+
+  <!-- Tabla de pagos -->
+  <div class="pp-card pp-table-card payments-table-card">
+    <div class="pp-table-card-header">
+      <span class="pp-table-card-title">Pagos de la orden</span>
+      <span class="pp-badge pp-badge-yellow">Sandbox</span>
+    </div>
+    <div class="table-scroll">
+      <table class="pp-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Referencia</th>
+            <th>Estado</th>
+            <th>Monto</th>
+          </tr>
+        </thead>
+        <tbody id="paymentsTable">
+          <tr><td colspan="4" class="table-empty">Sin pagos cargados</td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
+
 </div>
+
 {% endblock %}
 
 {% block scripts %}
-<script>
-function showAlert(target, type, message) {
-  const alert = $(target);
-  alert.removeClass("d-none alert-danger alert-success alert-warning")
-       .addClass(`alert-${type}`)
-       .text(message);
-}
-
-async function loadClients() {
-  const response = await fetch("/api/v1/clientes");
-  const data = await response.json();
-  const select = $("#clientSelect");
-  select.empty();
-  data.forEach(item => {
-    select.append(`<option value="${item.id_cliente}">${item.nombre_completo}</option>`);
-  });
-}
-
-async function loadProductsForOrders() {
-  const response = await fetch("/api/v1/productos");
-  const data = await response.json();
-  const select = $("#productSelect");
-  select.empty();
-  data.forEach(item => {
-    select.append(`<option value="${item.id_producto}">${item.nombre} (${item.stock})</option>`);
-  });
-}
-
-async function loadOrders() {
-  const response = await fetch("/api/v1/ordenes");
-  const data = await response.json();
-  const body = $("#ordersTable");
-  body.empty();
-  if (!data.length) {
-    body.append(`<tr><td colspan="4" class="text-muted">Sin ordenes registradas</td></tr>`);
-    return;
-  }
-  data.forEach(item => {
-    body.append(`
-      <tr class="order-row" data-order-id="${item.id_orden}">
-        <td>${item.id_orden}</td>
-        <td>${item.nombre_cliente || item.id_cliente}</td>
-        <td>${item.estado}</td>
-        <td>${item.total}</td>
-      </tr>
-    `);
-  });
-}
-
-$("#reloadOrders").on("click", loadOrders);
-
-$("#orderForm").on("submit", async function (event) {
-  event.preventDefault();
-  const payload = {
-    id_cliente: Number($("#clientSelect").val()),
-    detalles: [
-      {
-        id_producto: Number($("#productSelect").val()),
-        cantidad: Number($(this).find("[name='cantidad']").val())
-      }
-    ],
-    estado: "En preparacion"
-  };
-
-  const response = await fetch("/api/v1/ordenes", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
-  const data = await response.json();
-  if (!response.ok) {
-    showAlert("#orderAlert", "danger", data.error || "No fue posible crear la orden");
-    return;
-  }
-  showAlert("#orderAlert", "success", `Orden creada con ID ${data.id_orden}`);
-  $("[name='order_id']").val(data.id_orden);
-  loadOrders();
-  loadProductsForOrders();
-});
-
-async function loadPayments(orderId) {
-  const response = await fetch(`/api/v1/ordenes/${orderId}/pagos`);
-  const data = await response.json();
-  const body = $("#paymentsTable");
-  body.empty();
-  if (!response.ok) {
-    showAlert("#paymentAlert", "danger", data.error || "No fue posible cargar pagos");
-    body.append(`<tr><td colspan="4" class="text-muted">Error cargando pagos</td></tr>`);
-    return;
-  }
-  if (!data.length) {
-    body.append(`<tr><td colspan="4" class="text-muted">Sin pagos para esta orden</td></tr>`);
-    return;
-  }
-  data.forEach(item => {
-    body.append(`
-      <tr>
-        <td>${item.id_pago}</td>
-        <td>${item.referencia_externa || "-"}</td>
-        <td>${item.estado}</td>
-        <td>${item.monto}</td>
-      </tr>
-    `);
-  });
-}
-
-$("#ordersTable").on("click", ".order-row", function () {
-  const orderId = $(this).data("order-id");
-  $("[name='order_id']").val(orderId);
-  loadPayments(orderId);
-});
-
-$("#createPaypalOrder").on("click", async function () {
-  const orderId = $("[name='order_id']").val();
-  if (!orderId) {
-    showAlert("#paymentAlert", "warning", "Debes indicar un ID de orden");
-    return;
-  }
-  const response = await fetch(`/api/v1/ordenes/${orderId}/pagos/paypal/crear-orden`, {
-    method: "POST"
-  });
-  const data = await response.json();
-  if (!response.ok) {
-    showAlert("#paymentAlert", "danger", data.error || "No fue posible crear la orden PayPal");
-    return;
-  }
-  showAlert("#paymentAlert", "success", `Pago creado con ID ${data.payment.id_pago}. Debes aprobarlo antes de capturarlo.`);
-  $("[name='payment_id']").val(data.payment.id_pago);
-  if (data.approve_url) {
-    $("#approveLink").attr("href", data.approve_url);
-    $("#approveBox").removeClass("d-none");
-  }
-  loadPayments(orderId);
-});
-
-$("#loadPayments").on("click", async function () {
-  const orderId = $("[name='order_id']").val();
-  if (!orderId) {
-    showAlert("#paymentAlert", "warning", "Debes indicar un ID de orden");
-    return;
-  }
-  await loadPayments(orderId);
-});
-
-$("#capturePayment").on("click", async function () {
-  const paymentId = $("[name='payment_id']").val();
-  const orderId = $("[name='order_id']").val();
-  if (!paymentId) {
-    showAlert("#paymentAlert", "warning", "Debes indicar un ID de pago");
-    return;
-  }
-  const response = await fetch(`/api/v1/pagos/${paymentId}/capturar`, {
-    method: "POST"
-  });
-  const data = await response.json();
-  if (!response.ok) {
-    showAlert("#paymentAlert", "danger", data.error || "No fue posible capturar el pago");
-    return;
-  }
-  showAlert("#paymentAlert", "success", `Pago ${paymentId} capturado correctamente`);
-  if (orderId) {
-    loadPayments(orderId);
-  }
-});
-
-loadClients();
-loadProductsForOrders();
-loadOrders();
-</script>
+  <script src="{{ url_for('static', filename='js/ordenes.js') }}"></script>
 {% endblock %}

@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Personas | ProPat{% endblock %}
+
+{% block head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/personas.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<div class="pp-page-header">
+  <div>
+    <p class="pp-subtitle">Gestión</p>
+    <h1>Personas 🪪</h1>
+    <p>Registro base de personas vinculadas al sistema.</p>
+  </div>
+  <button class="btn-pp btn-pp-yellow" id="btnNuevoPersona">+ Nueva persona</button>
+</div>
+
+<div id="personaPageAlert" class="pp-alert"></div>
+
+<div class="pp-card pp-table-card">
+  <div class="pp-table-card-header">
+    <span class="pp-table-card-title">Listado de personas</span>
+    <button class="btn-pp btn-pp-ghost btn-pp-sm" id="reloadPersonas">↻ Actualizar</button>
+  </div>
+  <div class="table-scroll">
+    <table class="pp-table">
+      <thead>
+        <tr>
+          <th>Cédula</th>
+          <th>Nombre completo</th>
+          <th>Email</th>
+          <th>Teléfono</th>
+          <th>Fecha registro</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="personasTable">
+        <tr><td colspan="6" class="table-empty">Cargando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal persona -->
+<div id="modalPersona" class="pp-modal-overlay" onclick="ppModalBackdrop(event,'modalPersona')">
+  <div class="pp-card pp-modal-box">
+    <div class="pp-modal-header">
+      <h2 class="pp-modal-title" id="modalPersonaTitle">Nueva persona</h2>
+      <button class="pp-modal-close" onclick="ppModalClose('modalPersona')">✕</button>
+    </div>
+
+    <div id="personaAlert" class="pp-alert"></div>
+
+    <form id="personaForm">
+      <div class="pp-form-grid">
+        <div class="pp-field col-full">
+          <label class="pp-label">Cédula *</label>
+          <input class="pp-input" id="pCedula" name="cedula"
+                 placeholder="Ej: 1-0000-0000" required>
+        </div>
+        <div class="pp-field">
+          <label class="pp-label">Nombre *</label>
+          <input class="pp-input" name="nombre" placeholder="Nombre" required>
+        </div>
+        <div class="pp-field">
+          <label class="pp-label">Apellido *</label>
+          <input class="pp-input" name="apellido" placeholder="Apellido" required>
+        </div>
+        <div class="pp-field col-full">
+          <label class="pp-label">Email *</label>
+          <input class="pp-input" name="email" type="email"
+                 placeholder="correo@ejemplo.com" required>
+        </div>
+        <div class="pp-field">
+          <label class="pp-label">Teléfono</label>
+          <input class="pp-input" name="telefono" placeholder="8888-8888">
+        </div>
+
+        <!-- Ubicación -->
+        <div class="pp-field">
+          <label class="pp-label">Provincia</label>
+          <select class="pp-input" id="pProvincia">
+            <option value="">— Provincia —</option>
+          </select>
+        </div>
+        <div class="pp-field">
+          <label class="pp-label">Cantón</label>
+          <select class="pp-input" id="pCanton" disabled>
+            <option value="">— Cantón —</option>
+          </select>
+        </div>
+        <div class="pp-field">
+          <label class="pp-label">Distrito</label>
+          <select class="pp-input" id="pDistrito" name="id_distrito" disabled>
+            <option value="">— Distrito —</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-pp btn-pp-ghost"
+                onclick="ppModalClose('modalPersona')">Cancelar</button>
+        <button type="submit" class="btn-pp btn-pp-primary"
+                id="personaSubmitBtn">Guardar persona</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+  <script src="{{ url_for('static', filename='js/personas.js') }}"></script>
+{% endblock %}

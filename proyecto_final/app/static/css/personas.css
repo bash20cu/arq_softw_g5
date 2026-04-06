@@ -1,0 +1,16 @@
+/* ProPat — personas.css */
+
+.table-scroll { overflow-x: auto; }
+
+.table-empty {
+  text-align: center;
+  color: var(--ink-muted);
+  padding: 32px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}

@@ -1,0 +1,114 @@
+/* ProPat — index.css */
+
+/* ── Hero grid ───────────────────────────────────────────────── */
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 24px;
+  align-items: start;
+  margin-bottom: 32px;
+}
+
+.hero-card {
+  background: var(--ink) !important;
+  border-color: var(--ink) !important;
+  padding: 48px;
+  animation-delay: .05s;
+}
+
+.hero-tag {
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--yolk);
+  margin-bottom: 16px;
+}
+
+.hero-title {
+  font-size: 3rem;
+  font-weight: 900;
+  color: var(--white);
+  line-height: 1.05;
+  margin-bottom: 20px;
+}
+
+.hero-title span { color: var(--yolk); }
+
+.hero-desc {
+  color: rgba(255,255,255,.6);
+  font-size: .95rem;
+  line-height: 1.7;
+  max-width: 420px;
+  margin-bottom: 32px;
+}
+
+.hero-desc strong { color: rgba(255,255,255,.9); }
+
+.hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+.hero-ghost {
+  border-color: rgba(255,255,255,.2) !important;
+  color: rgba(255,255,255,.7) !important;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────────── */
+.sidebar-cards { display: flex; flex-direction: column; gap: 16px; }
+
+.sidebar-mission {
+  background: var(--yolk) !important;
+  border-color: var(--yolk-deep) !important;
+  animation-delay: .1s;
+}
+
+.sidebar-label {
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: 8px;
+}
+
+.sidebar-text {
+  font-size: .9rem;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--ink);
+  margin: 0;
+}
+
+/* ── Access cards ────────────────────────────────────────────── */
+.access-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.access-link { text-decoration: none; }
+
+.access-card {
+  text-align: center;
+  padding: 32px 20px;
+  cursor: pointer;
+}
+
+.access-card:nth-child(1) { animation-delay: .2s; }
+.access-card:nth-child(2) { animation-delay: .25s; }
+.access-card:nth-child(3) { animation-delay: .3s; }
+
+.access-icon   { font-size: 2.5rem; display: block; margin-bottom: 12px; }
+.access-title  { font-family: var(--font-display); font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+.access-desc   { font-size: .8rem; color: var(--ink-muted); }
+
+/* ── Responsivo ──────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .hero-grid  { grid-template-columns: 1fr; }
+  .access-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 576px) {
+  .hero-title  { font-size: 2rem; }
+  .hero-card   { padding: 28px; }
+  .access-grid { grid-template-columns: 1fr; }
+}
