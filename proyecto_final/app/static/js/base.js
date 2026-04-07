@@ -111,6 +111,46 @@ window.ppClientBadge = function (estado) {
 };
 
 /**
+ * Wrapper simple para consumir la API REST de ProPat.
+ * - Incluye cookies de sesión (auth por session cookie)
+ * - Maneja errores comunes y devuelve JSON
+ *
+ * @param {string} url
+ * @param {RequestInit} [options]
+ * @returns {Promise<any>}
+ */
+window.ppFetch = async function (url, options = {}) {
+  const headers = {
+    Accept: 'application/json',
+    ...(options.headers || {}),
+  };
+
+  const res = await fetch(url, {
+    credentials: 'same-origin',
+    ...options,
+    headers,
+  });
+
+  let data = null;
+  const contentType = res.headers.get('content-type') || '';
+  if (contentType.includes('application/json')) {
+    data = await res.json();
+  } else {
+    const text = await res.text();
+    data = text ? { message: text } : null;
+  }
+
+  if (!res.ok) {
+    const msg =
+      (data && (data.error || data.message)) ||
+      `Error HTTP ${res.status}`;
+    throw new Error(msg);
+  }
+
+  return data;
+};
+
+/**
  * Carga el select de provincias desde la API.
  * @param {string} selectId - ID del <select>
  */
@@ -168,6 +208,27 @@ window.ppLoadDistritos = async function (cantonId, distritoSelectId) {
     distSel.appendChild(opt);
   });
   distSel.disabled = false;
+};
+
+/**
+ * Enlaza tres selects (provincia → cantón → distrito) usando la API.
+ * @param {string} provinciaSelectId
+ * @param {string} cantonSelectId
+ * @param {string} distritoSelectId
+ */
+window.ppBindLocation = function (provinciaSelectId, cantonSelectId, distritoSelectId) {
+  const provSel = document.getElementById(provinciaSelectId);
+  const cantSel = document.getElementById(cantonSelectId);
+  const distSel = document.getElementById(distritoSelectId);
+  if (!provSel || !cantSel || !distSel) return;
+
+  provSel.addEventListener('change', async () => {
+    await ppLoadCantones(provSel.value, cantonSelectId, distritoSelectId);
+  });
+
+  cantSel.addEventListener('change', async () => {
+    await ppLoadDistritos(cantSel.value, distritoSelectId);
+  });
 };
 
 /* ── Marcar link activo en el navbar ─────────────────────── */
