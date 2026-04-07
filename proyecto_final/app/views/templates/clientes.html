@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}Clientes | ProPat{% endblock %}
+
+{% block head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/clientes.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<div class="pp-page-header">
+  <div>
+    <p class="pp-subtitle">Gestión</p>
+    <h1>Clientes 👥</h1>
+    <p>Administración completa de la cartera de clientes.</p>
+  </div>
+  <button class="btn-pp btn-pp-yellow" id="btnNuevoCliente">+ Nuevo cliente</button>
+</div>
+
+<div id="clientePageAlert" class="pp-alert"></div>
+
+<div class="pp-card pp-table-card">
+  <div class="pp-table-card-header">
+    <span class="pp-table-card-title">Listado de clientes</span>
+    <button class="btn-pp btn-pp-ghost btn-pp-sm" id="reloadClients">↻ Actualizar</button>
+  </div>
+  <div class="table-scroll">
+    <table class="pp-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Cliente</th>
+          <th>Tipo</th>
+          <th>Email</th>
+          <th>Teléfono</th>
+          <th>Puntos</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="clientsTable">
+        <tr><td colspan="8" class="table-empty">Cargando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal cliente -->
+<div id="modalCliente" class="pp-modal-overlay" onclick="ppModalBackdrop(event,'modalCliente')">
+  <div class="pp-card pp-modal-box cliente-modal-box">
+    <div class="pp-modal-header">
+      <h2 class="pp-modal-title" id="modalClienteTitle">Nuevo cliente</h2>
+      <button class="pp-modal-close" onclick="ppModalClose('modalCliente')">✕</button>
+    </div>
+
+    <div id="clienteAlert" class="pp-alert"></div>
+
+    <form id="clientForm">
+      <input type="hidden" id="fldClienteId">
+
+      <div class="pp-form-grid">
+        <div class="pp-field">
+          <label class="pp-label">Tipo de cliente</label>
+          <select class="pp-input" name="tipo_cliente" id="cTipo">
+            <option value="Persona">Persona</option>
+            <option value="Empresa">Empresa</option>
+          </select>
+        </div>
+        <div class="pp-field">
+          <label class="pp-label">Estado</label>
+          <select class="pp-input" name="estado_cliente">
+            <option value="Activo">Activo</option>
+            <option value="Inactivo">Inactivo</option>
+            <option value="VIP">VIP</option>
+            <option value="Moroso">Moroso</option>
+          </select>
+        </div>
+        <div class="pp-field">
+          <label class="pp-label">Nombre *</label>
+          <input class="pp-input" name="nombre" placeholder="Nombre o razón social" required>
+        </div>
+        <div class="pp-field" id="cApellidoBox">
+          <label class="pp-label">Apellido *</label>
+          <input class="pp-input" name="apellido" placeholder="Apellido">
+        </div>
+        <div class="pp-field col-full">
+          <label class="pp-label">Email *</label>
+          <input class="pp-input" name="email" type="email" placeholder="correo@ejemplo.com" required>
+        </div>
+        <div class="pp-field">
+          <label class="pp-label">Teléfono</label>
+          <input class="pp-input" name="telefono" placeholder="8888-8888">
+        </div>
+        <div class="pp-field">
+          <label class="pp-label">Cédula (vínculo persona)</label>
+          <input class="pp-input" name="cedula_persona" placeholder="Opcional">
+        </div>
+        <div class="pp-field col-full">
+          <label class="pp-label">Dirección</label>
+          <input class="pp-input" name="direccion" placeholder="Dirección exacta">
+        </div>
+
+        <!-- Ubicación -->
+        <div class="pp-field">
+          <label class="pp-label">Provincia</label>
+          <select class="pp-input" id="cProvincia"><option value="">— Provincia —</option></select>
+        </div>
+        <div class="pp-field">
+          <label class="pp-label">Cantón</label>
+          <select class="pp-input" id="cCanton" disabled><option value="">— Cantón —</option></select>
+        </div>
+        <div class="pp-field">
+          <label class="pp-label">Distrito</label>
+          <select class="pp-input" id="cDistrito" name="id_distrito" disabled><option value="">— Distrito —</option></select>
+        </div>
+        <div class="pp-field">
+          <label class="pp-label">Puntos de lealtad</label>
+          <input class="pp-input" name="puntos_lealtad" type="number" min="0" value="0">
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-pp btn-pp-ghost" onclick="ppModalClose('modalCliente')">Cancelar</button>
+        <button type="submit" class="btn-pp btn-pp-primary" id="clienteSubmitBtn">Guardar cliente</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+  <script src="{{ url_for('static', filename='js/clientes.js') }}"></script>
+{% endblock %}

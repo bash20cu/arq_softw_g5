@@ -1,0 +1,96 @@
+/* ProPat — ordenes.css */
+
+/* ── Formulario nueva orden ──────────────────────────────────── */
+.order-form-box {
+  display: none;
+  margin-bottom: 20px;
+  animation: fadeUp .2s ease both;
+}
+
+.order-form-box.open { display: block; }
+
+.order-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 140px;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.order-form-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* ── Tabla ───────────────────────────────────────────────────── */
+.table-scroll  { overflow-x: auto; }
+
+.table-empty {
+  text-align: center;
+  color: var(--ink-muted);
+  padding: 32px;
+}
+
+/* ── Sección pagos ───────────────────────────────────────────── */
+.payments-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.payments-table-card { align-self: start; }
+
+.paypal-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.approve-box {
+  display: none;
+  margin-bottom: 16px;
+}
+
+.approve-box.open { display: block; }
+
+.approve-link {
+  width: 100%;
+  justify-content: center;
+}
+
+.paypal-capture {
+  width: 100%;
+  justify-content: center;
+}
+
+.paypal-flow-box {
+  background: var(--yolk-light);
+  border: 1.5px solid var(--yolk-deep);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  margin-top: 16px;
+}
+
+.paypal-flow-title {
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: 8px;
+}
+
+.paypal-flow-list {
+  margin: 0;
+  padding-left: 16px;
+  font-size: .82rem;
+  color: var(--ink-soft);
+  line-height: 1.8;
+}
+
+/* ── Responsivo ──────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .order-form-grid  { grid-template-columns: 1fr; }
+  .payments-grid    { grid-template-columns: 1fr; }
+}

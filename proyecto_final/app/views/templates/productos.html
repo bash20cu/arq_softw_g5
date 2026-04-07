@@ -1,109 +1,112 @@
 {% extends "base.html" %}
-
 {% block title %}Productos | ProPat{% endblock %}
 
+{% block head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/productos.css') }}">
+{% endblock %}
+
 {% block content %}
-<div class="row g-4">
-  <div class="col-lg-4">
-    <div class="bg-white border rounded p-4">
-      <h1 class="h5 mb-3">Alta basica de producto</h1>
-      <div id="productAlert" class="alert d-none"></div>
-      <p class="small-muted">Si falla el guardado, revisa que hayas iniciado sesion con un usuario administrativo.</p>
-      <form id="productForm" class="row g-2">
-        <div class="col-12"><input class="form-control" name="nombre" placeholder="Nombre"></div>
-        <div class="col-12"><input class="form-control" name="descripcion" placeholder="Descripcion"></div>
-        <div class="col-12"><input class="form-control" name="fotografia_url" placeholder="URL de foto"></div>
-        <div class="col-12"><input class="form-control" name="color_estilo" placeholder="Color o estilo"></div>
-        <div class="col-12"><input class="form-control" name="codigo_barras" placeholder="Codigo de barras"></div>
-        <div class="col-6"><input class="form-control" name="precio_base" type="number" step="0.01" placeholder="Precio base"></div>
-        <div class="col-6"><input class="form-control" name="stock" type="number" placeholder="Stock"></div>
-        <div class="col-12"><button class="btn btn-dark w-100" type="submit">Guardar producto</button></div>
-      </form>
-    </div>
+
+<div class="pp-page-header">
+  <div>
+    <p class="pp-subtitle">Gestión</p>
+    <h1>Productos 🐥</h1>
+    <p>Catálogo completo de artículos ProPat.</p>
   </div>
-  <div class="col-lg-8">
-    <div class="bg-white border rounded p-4">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="h5 mb-0">Catalogo</h2>
-        <button class="btn btn-sm btn-outline-secondary" id="reloadProducts">Recargar</button>
-      </div>
-      <div class="table-responsive">
-        <table class="table table-sm align-middle">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Producto</th>
-              <th>Precio final</th>
-              <th>Stock</th>
-            </tr>
-          </thead>
-          <tbody id="productsTable">
-            <tr><td colspan="4" class="text-muted">Cargando...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+  <button class="btn-pp btn-pp-yellow" id="btnNuevoProducto">+ Nuevo producto</button>
+</div>
+
+<div id="productoPageAlert" class="pp-alert"></div>
+
+<div class="pp-card pp-table-card">
+  <div class="pp-table-card-header">
+    <span class="pp-table-card-title">Catálogo</span>
+    <button class="btn-pp btn-pp-ghost btn-pp-sm" id="reloadProducts">↻ Actualizar</button>
+  </div>
+  <div class="table-scroll">
+    <table class="pp-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Producto</th>
+          <th>Código</th>
+          <th>Precio base</th>
+          <th>IVA</th>
+          <th>Precio final</th>
+          <th>Stock</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="productsTable">
+        <tr><td colspan="9" class="table-empty">Cargando...</td></tr>
+      </tbody>
+    </table>
   </div>
 </div>
+
+<!-- Modal producto -->
+<div id="modalProducto" class="pp-modal-overlay" onclick="ppModalBackdrop(event,'modalProducto')">
+  <div class="pp-card pp-modal-box">
+    <div class="pp-modal-header">
+      <h2 class="pp-modal-title" id="modalProductoTitle">Nuevo producto</h2>
+      <button class="pp-modal-close" onclick="ppModalClose('modalProducto')">✕</button>
+    </div>
+
+    <div id="productoAlert" class="pp-alert"></div>
+
+    <form id="productForm">
+      <input type="hidden" id="fldProductoId">
+
+      <div class="pp-form-grid">
+        <div class="pp-field col-full">
+          <label class="pp-label">Nombre *</label>
+          <input class="pp-input" name="nombre" placeholder="Nombre del producto" required>
+        </div>
+        <div class="pp-field col-full">
+          <label class="pp-label">Descripción</label>
+          <input class="pp-input" name="descripcion" placeholder="Descripción breve">
+        </div>
+        <div class="pp-field col-full">
+          <label class="pp-label">URL de fotografía</label>
+          <input class="pp-input" name="fotografia_url" placeholder="https://...">
+        </div>
+        <div class="pp-field">
+          <label class="pp-label">Color / estilo</label>
+          <input class="pp-input" name="color_estilo" placeholder="Amarillo clásico">
+        </div>
+        <div class="pp-field">
+          <label class="pp-label">Código de barras</label>
+          <input class="pp-input" name="codigo_barras" placeholder="0000000000000">
+        </div>
+        <div class="pp-field">
+          <label class="pp-label">Precio base *</label>
+          <input class="pp-input" name="precio_base" type="number" step="0.01" min="0.01" placeholder="0.00" required>
+        </div>
+        <div class="pp-field">
+          <label class="pp-label">IVA %</label>
+          <input class="pp-input" name="iva_porcentaje" type="number" step="0.01" min="0" value="13">
+        </div>
+        <div class="pp-field">
+          <label class="pp-label">Stock *</label>
+          <input class="pp-input" name="stock" type="number" min="0" placeholder="0" required>
+        </div>
+        <div class="pp-field activo-check">
+          <input type="checkbox" name="activo" id="chkActivo" checked>
+          <label for="chkActivo">Activo</label>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-pp btn-pp-ghost" onclick="ppModalClose('modalProducto')">Cancelar</button>
+        <button type="submit" class="btn-pp btn-pp-primary" id="productoSubmitBtn">Guardar producto</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
-<script>
-async function loadProducts() {
-  const response = await fetch("/api/v1/productos");
-  const data = await response.json();
-  const body = $("#productsTable");
-  body.empty();
-  if (!data.length) {
-    body.append(`<tr><td colspan="4" class="text-muted">Sin productos cargados</td></tr>`);
-    return;
-  }
-  data.forEach(item => {
-    body.append(`
-      <tr>
-        <td>${item.id_producto}</td>
-        <td>
-          <strong>${item.nombre}</strong><br>
-          <small class="text-muted">${item.color_estilo || "-"}</small>
-        </td>
-        <td>${item.precio_actual}</td>
-        <td>${item.stock}</td>
-      </tr>
-    `);
-  });
-}
-
-$("#reloadProducts").on("click", loadProducts);
-
-$("#productForm").on("submit", async function (event) {
-  event.preventDefault();
-  const payload = {
-    nombre: $(this).find("[name='nombre']").val(),
-    descripcion: $(this).find("[name='descripcion']").val(),
-    fotografia_url: $(this).find("[name='fotografia_url']").val(),
-    color_estilo: $(this).find("[name='color_estilo']").val(),
-    codigo_barras: $(this).find("[name='codigo_barras']").val(),
-    precio_base: Number($(this).find("[name='precio_base']").val()),
-    iva_porcentaje: 13,
-    stock: Number($(this).find("[name='stock']").val()),
-    activo: true
-  };
-  const response = await fetch("/api/v1/productos", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
-  const data = await response.json();
-  const alert = $("#productAlert");
-  if (!response.ok) {
-    alert.removeClass("d-none alert-success").addClass("alert-danger").text(data.error || "No fue posible guardar");
-    return;
-  }
-  alert.removeClass("d-none alert-danger").addClass("alert-success").text("Producto guardado");
-  this.reset();
-  loadProducts();
-});
-
-loadProducts();
-</script>
+  <script src="{{ url_for('static', filename='js/productos.js') }}"></script>
 {% endblock %}

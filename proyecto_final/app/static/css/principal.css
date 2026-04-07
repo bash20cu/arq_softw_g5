@@ -1,0 +1,34 @@
+/* ProPat — principal.css */
+
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.dash-link { text-decoration: none; }
+
+.dash-card {
+  border-top-width: 3px;
+  cursor: pointer;
+}
+
+.dash-card--yellow { border-top-color: var(--yolk); animation-delay: .10s; }
+.dash-card--ink    { border-top-color: var(--ink);  animation-delay: .15s; }
+.dash-card--green  { border-top-color: #2A7A4B;     animation-delay: .20s; }
+.dash-card--blue   { border-top-color: #1A5276;     animation-delay: .25s; }
+.dash-card--orange { border-top-color: #E67E22;     animation-delay: .30s; }
+
+.dash-icon {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 768px) {
+  .dash-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 480px) {
+  .dash-grid { grid-template-columns: 1fr; }
+}

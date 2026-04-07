@@ -1,30 +1,64 @@
 {% extends "base.html" %}
+{% block title %}Inicio | ProPat S.A.{% endblock %}
 
-{% block title %}Inicio | ProPat{% endblock %}
+{% block head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+{% endblock %}
 
 {% block content %}
-<div class="row g-4">
-  <div class="col-lg-8">
-    <div class="bg-white border rounded p-4">
-      <p class="text-uppercase small text-muted mb-2">Caso 5</p>
-      <h1 class="h3">Sistema web de ventas para ProPat S.A.</h1>
-      <p class="mb-4">Frontend rustico inicial para validar flujo de productos, clientes, pedidos y pagos.</p>
-      <div class="d-flex flex-wrap gap-2">
-        <a class="btn btn-dark" href="/login">Entrar al sistema</a>
-        <a class="btn btn-outline-secondary" href="/registro">Registro de cliente</a>
-        <a class="btn btn-outline-secondary" href="/productos">Ver catalogo</a>
-      </div>
+
+<div class="hero-grid">
+  <div class="pp-card hero-card">
+    <p class="hero-tag">◆ Sistema de Ventas — Caso 5</p>
+    <h1 class="hero-title">El patito<br>de hule<br><span>perfecto.</span></h1>
+    <p class="hero-desc">
+      Bienvenido al sistema de gestión de ventas de <strong>ProPat S.A.</strong>
+      Administra productos, clientes, pedidos y pagos desde un solo lugar.
+    </p>
+    <div class="hero-actions">
+      <a class="btn-pp btn-pp-yellow" href="/login">→ Entrar al sistema</a>
+      <a class="btn-pp btn-pp-ghost hero-ghost" href="/registro">Crear cuenta</a>
+      <a class="btn-pp btn-pp-ghost hero-ghost" href="/productos">Ver catálogo</a>
     </div>
   </div>
-  <div class="col-lg-4">
-    <div class="placeholder-panel h-100">
-      <div class="mb-3">[banner aqui]</div>
-      <p class="mb-1"><strong>Mision:</strong></p>
-      <p class="small">"Ser un proveedor de confianza para los clientes, brindando productos de calidad"</p>
-      <p class="mb-1"><strong>Vision:</strong></p>
-      <p class="small">"Ser la empresa distribuidora de patitos de hule"</p>
-      <p class="mb-0"><strong>Contacto:</strong> [correo aqui] / [telefono aqui]</p>
+
+  <div class="sidebar-cards">
+    <div class="pp-card sidebar-mission">
+      <p class="sidebar-label">Misión</p>
+      <p class="sidebar-text">Ser un proveedor de confianza, brindando productos de calidad a cada cliente.</p>
+    </div>
+    <div class="pp-card">
+      <p class="sidebar-label">Visión</p>
+      <p class="sidebar-text">Ser la empresa distribuidora líder de patitos de hule en la región.</p>
+      <hr class="pp-divider" style="margin: 12px 0;">
+      <p class="sidebar-label">Contacto</p>
+      <p class="sidebar-text">📧 ventas@propat.com<br>📞 +506 2528-4900</p>
     </div>
   </div>
 </div>
+
+<div class="access-grid">
+  <a href="/productos" class="access-link">
+    <div class="pp-card access-card">
+      <span class="access-icon">🐥</span>
+      <div class="access-title">Catálogo</div>
+      <div class="access-desc">Explora todos los productos disponibles</div>
+    </div>
+  </a>
+  <a href="/consulta-pedido" class="access-link">
+    <div class="pp-card access-card">
+      <span class="access-icon">📦</span>
+      <div class="access-title">Consultar pedido</div>
+      <div class="access-desc">Revisa el estado de tu orden</div>
+    </div>
+  </a>
+  <a href="/registro" class="access-link">
+    <div class="pp-card access-card">
+      <span class="access-icon">✨</span>
+      <div class="access-title">Registro</div>
+      <div class="access-desc">Crea tu cuenta de cliente</div>
+    </div>
+  </a>
+</div>
+
 {% endblock %}
