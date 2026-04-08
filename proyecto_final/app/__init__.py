@@ -1,3 +1,9 @@
+"""Punto de entrada principal de la aplicacion Flask.
+
+Este modulo crea la aplicacion, carga la configuracion del entorno,
+inicializa la base de datos y registra los blueprints del frontend y del API.
+"""
+
 from flask import Flask
 
 from app.config import Config
@@ -8,6 +14,8 @@ from app.routes.frontend import frontend_bp
 
 
 def create_app() -> Flask:
+    """Construye y devuelve la aplicacion Flask completamente configurada."""
+
     app = Flask(__name__, template_folder="views/templates")
     app.config.from_object(Config)
 

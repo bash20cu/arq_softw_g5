@@ -1,9 +1,13 @@
+"""Modelos relacionados con ordenes y pagos."""
+
 from datetime import datetime
 
 from app.database import db
 
 
 def _serialize_datetime(value):
+    """Normaliza fechas para que siempre puedan enviarse como texto JSON."""
+
     # Some SQL Server / ODBC combinations can hand back datetime columns as strings,
     # so the API serializer needs to tolerate both Python datetime objects and text.
     if value is None:
@@ -14,6 +18,8 @@ def _serialize_datetime(value):
 
 
 class Order(db.Model):
+    """Cabecera de una orden de compra."""
+
     __tablename__ = "orden_compra"
 
     id_orden = db.Column(db.Integer, primary_key=True)
@@ -32,10 +38,14 @@ class Order(db.Model):
     )
 
     def save(self) -> None:
+        """Guarda la orden actual en base de datos."""
+
         db.session.add(self)
         db.session.commit()
 
     def to_dict(self, *, include_details: bool = False) -> dict:
+        """Serializa la orden y opcionalmente incluye sus detalles."""
+
         payload = {
             "id_orden": self.id_orden,
             "id_cliente": self.id_cliente,
@@ -52,6 +62,8 @@ class Order(db.Model):
 
 
 class OrderDetail(db.Model):
+    """Linea individual de producto dentro de una orden."""
+
     __tablename__ = "detalle_orden"
 
     id_detalle = db.Column(db.Integer, primary_key=True)
@@ -65,9 +77,13 @@ class OrderDetail(db.Model):
 
     @property
     def subtotal(self) -> float:
+        """Calcula el subtotal de la linea."""
+
         return float(self.precio_venta) * self.cantidad
 
     def to_dict(self) -> dict:
+        """Serializa el detalle con subtotal y producto relacionado."""
+
         return {
             "id_detalle": self.id_detalle,
             "id_orden": self.id_orden,
@@ -80,6 +96,8 @@ class OrderDetail(db.Model):
 
 
 class Payment(db.Model):
+    """Registro local de un intento o cobro procesado por un proveedor externo."""
+
     __tablename__ = "pago"
 
     id_pago = db.Column(db.Integer, primary_key=True)
@@ -95,6 +113,8 @@ class Payment(db.Model):
     orden = db.relationship("Order", lazy="joined")
 
     def to_dict(self) -> dict:
+        """Serializa el pago en formato JSON para el API y el frontend."""
+
         return {
             "id_pago": self.id_pago,
             "id_orden": self.id_orden,

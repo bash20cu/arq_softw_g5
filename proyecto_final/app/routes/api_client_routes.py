@@ -1,3 +1,5 @@
+"""Rutas CRUD de clientes."""
+
 from flask import request
 from sqlalchemy.exc import IntegrityError
 
@@ -20,12 +22,16 @@ def register_client_routes(bp):
     @bp.get("/clientes")
     @roles_required(ROLE_ADMIN, ROLE_EMPLEADO)
     def list_clientes():
+        """Lista todos los clientes para el backoffice."""
+
         clientes = ClientController.list_clients()
         return [cliente.to_dict() for cliente in clientes], 200
 
     @bp.get("/clientes/<int:client_id>")
     @login_required
     def get_cliente(client_id: int):
+        """Obtiene un cliente concreto aplicando control de acceso."""
+
         cliente = ClientController.get_client_by_id(client_id)
         if cliente is None:
             return error_response("cliente no encontrado", 404)
@@ -38,6 +44,8 @@ def register_client_routes(bp):
     @bp.post("/clientes")
     @roles_required(ROLE_ADMIN, ROLE_EMPLEADO)
     def create_cliente():
+        """Crea un cliente nuevo con los datos enviados por JSON."""
+
         payload = request.get_json(silent=True) or {}
         try:
             cliente = ClientController.create_client(
@@ -63,6 +71,8 @@ def register_client_routes(bp):
     @bp.put("/clientes/<int:client_id>")
     @roles_required(ROLE_ADMIN, ROLE_EMPLEADO)
     def update_cliente(client_id: int):
+        """Actualiza un cliente existente."""
+
         cliente = ClientController.get_client_by_id(client_id)
         if cliente is None:
             return error_response("cliente no encontrado", 404)
@@ -98,6 +108,8 @@ def register_client_routes(bp):
     @bp.delete("/clientes/<int:client_id>")
     @roles_required(ROLE_ADMIN)
     def delete_cliente(client_id: int):
+        """Elimina un cliente del sistema."""
+
         cliente = ClientController.get_client_by_id(client_id)
         if cliente is None:
             return error_response("cliente no encontrado", 404)

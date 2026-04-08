@@ -1,3 +1,5 @@
+"""Rutas CRUD de usuarios administrativos y operativos."""
+
 from flask import request
 from sqlalchemy.exc import IntegrityError
 
@@ -14,12 +16,16 @@ def register_user_routes(bp):
     @bp.get("/usuario")
     @roles_required(ROLE_ADMIN)
     def list_users():
+        """Lista todos los usuarios del sistema."""
+
         users = UserController.list_users()
         return users_response([u.to_dict() for u in users])
 
     @bp.post("/usuario")
     @roles_required(ROLE_ADMIN)
     def create_user():
+        """Crea un usuario nuevo a partir del payload JSON."""
+
         payload = request.get_json(silent=True) or {}
         cedula_persona = payload.get("cedula_persona")
         username = payload.get("username")
@@ -56,6 +62,8 @@ def register_user_routes(bp):
     @bp.get("/usuario/<int:user_id>")
     @roles_required(ROLE_ADMIN)
     def get_user(user_id: int):
+        """Obtiene un usuario puntual por id."""
+
         user = UserController.get_user_by_id(user_id)
         if user is None:
             return error_response("usuario no encontrado", 404)
@@ -64,6 +72,8 @@ def register_user_routes(bp):
     @bp.put("/usuario/<int:user_id>")
     @roles_required(ROLE_ADMIN)
     def update_user(user_id: int):
+        """Actualiza un usuario existente."""
+
         user = UserController.get_user_by_id(user_id)
         if user is None:
             return error_response("usuario no encontrado", 404)
@@ -94,6 +104,8 @@ def register_user_routes(bp):
     @bp.delete("/usuario/<int:user_id>")
     @roles_required(ROLE_ADMIN)
     def delete_user(user_id: int):
+        """Elimina un usuario del sistema."""
+
         user = UserController.get_user_by_id(user_id)
         if user is None:
             return error_response("usuario no encontrado", 404)

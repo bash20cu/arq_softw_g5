@@ -1,3 +1,9 @@
+"""Controlador de personas y catalogos geograficos.
+
+Administra el registro base de personas y los catalogos auxiliares usados
+por formularios como provincias, cantones, distritos y roles.
+"""
+
 from app.database import db
 from app.models.catalog import Canton, Distrito, Provincia, Role
 from app.models.user import Cliente, Persona, User
@@ -6,10 +12,14 @@ from app.models.user import Cliente, Persona, User
 class PersonaController:
     @staticmethod
     def list_personas() -> list[Persona]:
+        """Lista todas las personas ordenadas por nombre y apellido."""
+
         return Persona.query.order_by(Persona.nombre.asc(), Persona.apellido.asc()).all()
 
     @staticmethod
     def get_persona_by_cedula(cedula: str) -> Persona | None:
+        """Busca una persona por su cedula."""
+
         return Persona.query.filter_by(cedula=cedula).first()
 
     @staticmethod
@@ -22,6 +32,8 @@ class PersonaController:
         telefono: str | None = None,
         id_distrito: int | None = None,
     ) -> Persona:
+        """Crea una persona validando sus campos obligatorios y ubicacion."""
+
         persona = Persona(
             cedula=PersonaController._require_text(cedula, "cedula"),
             nombre=PersonaController._require_text(nombre, "nombre"),
@@ -36,6 +48,8 @@ class PersonaController:
 
     @staticmethod
     def update_persona(persona: Persona, **fields) -> Persona:
+        """Actualiza los campos editables de una persona."""
+
         if "nombre" in fields:
             persona.nombre = PersonaController._require_text(fields["nombre"], "nombre")
         if "apellido" in fields:
@@ -53,6 +67,8 @@ class PersonaController:
 
     @staticmethod
     def delete_persona(persona: Persona) -> None:
+        """Elimina una persona si no esta siendo usada por usuarios o clientes."""
+
         if User.query.filter_by(cedula_persona=persona.cedula).first() is not None:
             raise ValueError("persona en uso por usuario")
         if Cliente.query.filter_by(cedula_persona=persona.cedula).first() is not None:
@@ -62,14 +78,20 @@ class PersonaController:
 
     @staticmethod
     def list_roles() -> list[Role]:
+        """Lista los roles disponibles del sistema."""
+
         return Role.query.order_by(Role.id_rol.asc()).all()
 
     @staticmethod
     def list_provincias() -> list[Provincia]:
+        """Lista todas las provincias del catalogo."""
+
         return Provincia.query.order_by(Provincia.id_provincia.asc()).all()
 
     @staticmethod
     def list_cantones(id_provincia: int | None = None) -> list[Canton]:
+        """Lista cantones y opcionalmente filtra por provincia."""
+
         query = Canton.query
         if id_provincia is not None:
             query = query.filter_by(id_provincia=id_provincia)
@@ -77,6 +99,8 @@ class PersonaController:
 
     @staticmethod
     def list_distritos(id_canton: int | None = None) -> list[Distrito]:
+        """Lista distritos y opcionalmente filtra por canton."""
+
         query = Distrito.query
         if id_canton is not None:
             query = query.filter_by(id_canton=id_canton)
@@ -84,6 +108,8 @@ class PersonaController:
 
     @staticmethod
     def get_location_selection(id_distrito: int | None) -> dict:
+        """Resuelve provincia, canton y distrito a partir de un distrito dado."""
+
         if not id_distrito:
             return {"id_provincia": None, "id_canton": None, "id_distrito": None}
 
@@ -101,6 +127,8 @@ class PersonaController:
 
     @staticmethod
     def _require_text(value: str, field_name: str) -> str:
+        """Valida campos de texto obligatorios."""
+
         parsed = (value or "").strip()
         if not parsed:
             raise ValueError(f"{field_name} es obligatorio")
@@ -108,6 +136,8 @@ class PersonaController:
 
     @staticmethod
     def _validate_distrito(value) -> int | None:
+        """Valida que el distrito exista o permite valor nulo."""
+
         if value in (None, "", 0, "0"):
             return None
         try:

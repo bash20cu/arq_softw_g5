@@ -1,3 +1,5 @@
+"""Rutas HTTP para creacion, consulta y captura de pagos."""
+
 from decimal import Decimal
 
 from flask import request, url_for
@@ -21,6 +23,8 @@ def register_payment_routes(bp):
     @bp.get("/ordenes/<int:order_id>/pagos")
     @login_required
     def list_order_payments(order_id: int):
+        """Lista los pagos registrados para una orden dada."""
+
         order = OrderController.get_order_by_id(order_id)
         if order is None:
             return error_response("orden no encontrada", 404)
@@ -34,6 +38,8 @@ def register_payment_routes(bp):
     @bp.post("/ordenes/<int:order_id>/pagos/paypal/crear-orden")
     @roles_required(ROLE_ADMIN, ROLE_EMPLEADO)
     def create_paypal_payment(order_id: int):
+        """Genera una orden de cobro en PayPal para la orden comercial indicada."""
+
         order = OrderController.get_order_by_id(order_id)
         if order is None:
             return error_response("orden no encontrada", 404)
@@ -58,6 +64,8 @@ def register_payment_routes(bp):
     @bp.post("/pagos/paypal/capturar-por-referencia")
     @roles_required(ROLE_ADMIN, ROLE_EMPLEADO)
     def capture_payment_by_reference():
+        """Captura un pago PayPal usando su token o referencia externa."""
+
         payload = request.get_json(silent=True) or {}
         reference = (payload.get("reference") or payload.get("token") or "").strip()
         if not reference:
@@ -78,6 +86,8 @@ def register_payment_routes(bp):
     @bp.post("/pagos/<int:payment_id>/cancelar")
     @roles_required(ROLE_ADMIN, ROLE_EMPLEADO)
     def cancel_payment(payment_id: int):
+        """Cancela un pago pendiente existente."""
+
         payment = PaymentController.get_payment_by_id(payment_id)
         if payment is None:
             return error_response("pago no encontrado", 404)
@@ -93,6 +103,8 @@ def register_payment_routes(bp):
     @bp.post("/pagos/<int:payment_id>/capturar")
     @roles_required(ROLE_ADMIN, ROLE_EMPLEADO)
     def capture_payment(payment_id: int):
+        """Captura un pago pendiente usando el id local del registro."""
+
         payment = PaymentController.get_payment_by_id(payment_id)
         if payment is None:
             return error_response("pago no encontrado", 404)

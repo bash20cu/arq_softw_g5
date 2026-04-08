@@ -1,3 +1,5 @@
+"""Rutas HTTP relacionadas con autenticacion y autorregistro."""
+
 from flask import request, session
 from sqlalchemy.exc import IntegrityError
 
@@ -16,6 +18,8 @@ def register_auth_routes(bp):
 
     @bp.post("/auth/verificar")
     def verify_user():
+        """Inicia sesion validando username y password."""
+
         payload = request.get_json(silent=True) or {}
         username = payload.get("username")
         password = payload.get("password")
@@ -38,6 +42,8 @@ def register_auth_routes(bp):
 
     @bp.post("/auth/registro")
     def register_user():
+        """Registra un usuario cliente y crea sus registros base si hacen falta."""
+
         payload = request.get_json(silent=True) or {}
         cedula_persona = (payload.get("cedula_persona") or "").strip()
         username = (payload.get("username") or "").strip()
@@ -110,12 +116,16 @@ def register_auth_routes(bp):
     @bp.post("/auth/logout")
     @login_required
     def logout_user():
+        """Cierra la sesion actual del usuario autenticado."""
+
         session.clear()
         return {"ok": True, "message": "sesion cerrada"}, 200
 
     @bp.get("/menu/principal")
     @login_required
     def main_menu():
+        """Devuelve un menu simple de modulos disponible para el frontend."""
+
         user = session["user"]
         return {
             "user": user,

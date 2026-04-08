@@ -1,3 +1,9 @@
+"""Configuracion central del backend.
+
+Aqui se concentran las variables de entorno requeridas por Flask, SQLAlchemy,
+SQL Server y la integracion con PayPal.
+"""
+
 import os
 from urllib.parse import quote_plus
 
@@ -8,6 +14,8 @@ load_dotenv()
 
 
 def _require_env(name: str) -> str:
+    """Obtiene una variable obligatoria y falla temprano si falta."""
+
     value = os.getenv(name)
     if value is None or value.strip() == "":
         raise RuntimeError(f"Missing required environment variable: {name}")
@@ -15,6 +23,8 @@ def _require_env(name: str) -> str:
 
 
 def _get_bool_env(name: str, default: bool = False) -> bool:
+    """Interpreta una variable de entorno textual como booleano."""
+
     value = os.getenv(name)
     if value is None:
         return default
@@ -34,6 +44,8 @@ def _resolve_sql_driver(preferred_driver: str) -> str:
 
 
 class Config:
+    """Objeto de configuracion consumido por Flask."""
+
     SECRET_KEY = _require_env("SECRET_KEY")
     DB_HOST = _require_env("MSSQL_HOST")
     DB_PORT = _require_env("MSSQL_PORT")

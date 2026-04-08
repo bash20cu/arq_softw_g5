@@ -1,3 +1,9 @@
+"""Bootstrap opcional de base de datos para desarrollo.
+
+Este modulo crea la base si no existe, aplica el esquema SQL y luego ejecuta
+el seed cuando BOOTSTRAP_DATABASE esta habilitado.
+"""
+
 from pathlib import Path
 from urllib.parse import quote_plus
 
@@ -26,6 +32,8 @@ def _build_database_uri(
     database: str,
     driver: str,
 ) -> str:
+    """Construye la cadena de conexion SQLAlchemy para SQL Server."""
+
     driver = _resolve_sql_driver(driver)
 
     # Match the same driver compatibility rule used by the Flask app config so
@@ -43,12 +51,16 @@ def _build_database_uri(
 
 
 def _read_statements(sql_file: Path) -> list[str]:
+    """Lee un script SQL y lo separa en sentencias individuales por ';'."""
+
     raw = sql_file.read_text(encoding="utf-8")
     statements = [stmt.strip() for stmt in raw.split(";")]
     return [stmt for stmt in statements if stmt]
 
 
 def _database_exists(master_uri: str, db_name: str) -> bool:
+    """Verifica si la base objetivo ya existe dentro del servidor."""
+
     engine = create_engine(master_uri)
     with engine.connect() as conn:
         result = conn.execute(
@@ -59,6 +71,8 @@ def _database_exists(master_uri: str, db_name: str) -> bool:
 
 
 def _table_exists(database_uri: str, table_name: str) -> bool:
+    """Verifica si una tabla ya fue creada en la base objetivo."""
+
     engine = create_engine(database_uri)
     with engine.connect() as conn:
         result = conn.execute(
@@ -75,6 +89,8 @@ def _table_exists(database_uri: str, table_name: str) -> bool:
 
 
 def _run_statements(uri: str, statements: list[str], *, autocommit: bool = False) -> None:
+    """Ejecuta una lista de sentencias SQL usando transaccion o autocommit."""
+
     engine = create_engine(uri, isolation_level="AUTOCOMMIT" if autocommit else None)
     if autocommit:
         with engine.connect() as conn:
@@ -96,6 +112,8 @@ def bootstrap_database(
     db_name: str,
     db_driver: str,
 ) -> None:
+    """Aplica la inicializacion completa de la base en entornos controlados."""
+
     root_dir = Path(__file__).resolve().parents[1]
     sql_dir = root_dir / "app" / "sql"
     schema_path = sql_dir / "schema.sql"

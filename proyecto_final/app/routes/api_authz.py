@@ -1,3 +1,9 @@
+"""Funciones reutilizables de autenticacion y autorizacion.
+
+Estas utilidades se comparten entre modulos de rutas para centralizar la
+validacion de sesion, roles y acceso a recursos de clientes y ordenes.
+"""
+
 from functools import wraps
 
 from flask import session

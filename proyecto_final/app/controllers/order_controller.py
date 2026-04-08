@@ -1,3 +1,9 @@
+"""Controlador de ordenes de compra.
+
+Administra la creacion de ordenes, sus detalles, transiciones de estado y el
+ajuste del inventario asociado a cada movimiento.
+"""
+
 from decimal import Decimal
 
 from app.database import db
@@ -7,6 +13,8 @@ from app.models.user import Cliente
 
 
 class OrderController:
+    """Encapsula la logica de negocio del ciclo de vida de las ordenes."""
+
     ALLOWED_STATES = {
         "En preparacion",
         "Listo para envio o recoleccion",
@@ -23,10 +31,14 @@ class OrderController:
 
     @staticmethod
     def list_orders() -> list[Order]:
+        """Lista las ordenes desde la mas reciente hasta la mas antigua."""
+
         return Order.query.order_by(Order.id_orden.desc()).all()
 
     @staticmethod
     def get_order_by_id(order_id: int) -> Order | None:
+        """Busca una orden por su identificador."""
+
         return Order.query.filter_by(id_orden=order_id).first()
 
     @staticmethod
@@ -37,6 +49,8 @@ class OrderController:
         detalles: list[dict],
         estado: str = "En preparacion",
     ) -> Order:
+        """Crea una orden, valida sus detalles y descuenta inventario."""
+
         cliente_id = OrderController._validate_cliente(id_cliente)
         usuario_id = OrderController._validate_positive_int(id_usuario, "id_usuario")
         normalized_state = OrderController._validate_state(estado)
@@ -72,6 +86,8 @@ class OrderController:
         detalles: list[dict] | None = None,
         estado: str | None = None,
     ) -> Order:
+        """Actualiza una orden existente respetando sus restricciones de estado."""
+
         if (id_cliente is not None or detalles is not None) and order.estado not in OrderController.EDITABLE_STATES:
             raise ValueError("solo se pueden editar datos de una orden en preparacion")
 
@@ -95,6 +111,8 @@ class OrderController:
 
     @staticmethod
     def cancel_order(order: Order) -> Order:
+        """Cancela una orden y devuelve stock cuando corresponde."""
+
         if order.estado == "Cancelado":
             return OrderController.get_order_by_id(order.id_orden)
         if "Cancelado" not in OrderController.TRANSITIONS.get(order.estado, set()):
@@ -108,6 +126,8 @@ class OrderController:
 
     @staticmethod
     def transition_order(order: Order, next_state: str) -> Order:
+        """Mueve la orden a un nuevo estado permitido por la matriz de transiciones."""
+
         next_state = OrderController._validate_state(next_state)
         if next_state == order.estado:
             return OrderController.get_order_by_id(order.id_orden)
@@ -125,16 +145,22 @@ class OrderController:
 
     @staticmethod
     def get_available_transitions(order: Order) -> list[str]:
+        """Devuelve los siguientes estados permitidos para una orden."""
+
         return sorted(OrderController.TRANSITIONS.get(order.estado, set()))
 
     @staticmethod
     def calculate_total(order: Order) -> float:
+        """Calcula el total monetario de una orden sumando sus detalles."""
+
         return float(
             sum(Decimal(str(detalle.precio_venta)) * detalle.cantidad for detalle in order.detalles)
         )
 
     @staticmethod
     def _validate_cliente(value) -> int:
+        """Valida que el cliente exista y devuelve su id normalizado."""
+
         cliente_id = OrderController._validate_positive_int(value, "id_cliente")
         cliente = Cliente.query.filter_by(id_cliente=cliente_id).first()
         if cliente is None:
@@ -143,6 +169,8 @@ class OrderController:
 
     @staticmethod
     def _validate_positive_int(value, field_name: str) -> int:
+        """Valida enteros positivos usados como ids y cantidades."""
+
         try:
             parsed = int(value)
         except (TypeError, ValueError) as exc:
@@ -153,6 +181,8 @@ class OrderController:
 
     @staticmethod
     def _validate_state(value: str) -> str:
+        """Valida que el estado solicitado exista en el flujo permitido."""
+
         state = (value or "En preparacion").strip()
         if state not in OrderController.ALLOWED_STATES:
             raise ValueError("estado no permitido")
@@ -160,6 +190,8 @@ class OrderController:
 
     @staticmethod
     def _validate_detalles(items: list[dict]) -> list[dict]:
+        """Valida los detalles de una orden y comprueba stock disponible."""
+
         if not items:
             raise ValueError("detalles es obligatorio")
 
@@ -191,17 +223,23 @@ class OrderController:
 
     @staticmethod
     def _validate_updated_detalles(order: Order, items: list[dict]) -> list[dict]:
+        """Restaura stock previo y luego valida los nuevos detalles de la orden."""
+
         OrderController._restore_order_stock(order)
         return OrderController._validate_detalles(items)
 
     @staticmethod
     def _restore_order_stock(order: Order) -> None:
+        """Devuelve al inventario las cantidades reservadas por la orden."""
+
         for detail in order.detalles:
             if detail.producto is not None:
                 detail.producto.stock += detail.cantidad
 
     @staticmethod
     def _replace_order_details(order: Order, items: list[dict]) -> None:
+        """Reemplaza todos los detalles de una orden por una nueva coleccion."""
+
         for detail in list(order.detalles):
             db.session.delete(detail)
         order.detalles.clear()

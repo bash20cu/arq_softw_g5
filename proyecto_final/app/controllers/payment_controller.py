@@ -1,3 +1,9 @@
+"""Controlador de pagos.
+
+Orquesta la comunicacion con PayPal, la persistencia de pagos y la
+sincronizacion del estado comercial de la orden cuando un cobro se aprueba.
+"""
+
 import base64
 import json
 import os
@@ -15,22 +21,32 @@ from app.models.order import Order, Payment
 
 
 class PaymentController:
+    """Gestiona pagos locales y la integracion HTTP con PayPal."""
+
     ALLOWED_STATES = {"Pendiente", "Aprobado", "Rechazado", "Cancelado", "Error"}
 
     @staticmethod
     def list_payments_for_order(order_id: int) -> list[Payment]:
+        """Lista los pagos de una orden desde el mas reciente al mas antiguo."""
+
         return Payment.query.filter_by(id_orden=order_id).order_by(Payment.id_pago.desc()).all()
 
     @staticmethod
     def get_payment_by_id(payment_id: int) -> Payment | None:
+        """Busca un pago por su id interno."""
+
         return Payment.query.filter_by(id_pago=payment_id).first()
 
     @staticmethod
     def get_payment_by_reference(reference: str) -> Payment | None:
+        """Busca un pago usando la referencia externa del proveedor."""
+
         return Payment.query.filter_by(referencia_externa=reference).first()
 
     @staticmethod
     def get_latest_payment_for_order(order_id: int, provider: str) -> Payment | None:
+        """Obtiene el ultimo pago registrado para una orden y proveedor dados."""
+
         # We gate new PayPal orders off the latest payment to prevent duplicate
         # pending checkouts for the same order.
         return (
@@ -48,6 +64,8 @@ class PaymentController:
         return_url: str | None = None,
         cancel_url: str | None = None,
     ) -> dict:
+        """Crea una orden de cobro en PayPal y la registra localmente como pendiente."""
+
         # Only one active PayPal checkout should exist per order at a time.
         existing_payment = PaymentController.get_latest_payment_for_order(order.id_orden, "paypal")
         if existing_payment is not None:
@@ -114,6 +132,8 @@ class PaymentController:
 
     @staticmethod
     def capture_paypal_order(payment: Payment) -> dict:
+        """Captura una orden aprobada de PayPal y actualiza el pago local."""
+
         if payment.proveedor.lower() != "paypal":
             raise ValueError("solo se soporta captura para paypal")
         if not payment.referencia_externa:
@@ -157,6 +177,8 @@ class PaymentController:
 
     @staticmethod
     def mark_payment_state(payment: Payment, state: str) -> Payment:
+        """Actualiza manualmente el estado de un pago a uno permitido."""
+
         normalized = (state or "").strip().title()
         if normalized not in PaymentController.ALLOWED_STATES:
             raise ValueError("estado de pago no permitido")
@@ -167,6 +189,8 @@ class PaymentController:
 
     @staticmethod
     def cancel_pending_payment(payment: Payment) -> Payment:
+        """Cancela un pago pendiente para permitir generar uno nuevo."""
+
         # Cancelling a pending checkout lets the user generate a new PayPal order
         # without mutating the commercial order itself.
         if payment.estado != "Pendiente":
@@ -178,6 +202,8 @@ class PaymentController:
 
     @staticmethod
     def _sync_order_after_payment(payment: Payment) -> None:
+        """Avanza la orden cuando el pago aprobado la deja lista para entrega."""
+
         order = payment.orden
         if order is None or payment.estado != "Aprobado":
             return
@@ -188,6 +214,8 @@ class PaymentController:
 
     @staticmethod
     def _get_paypal_access_token() -> str:
+        """Solicita a PayPal un token OAuth2 para operar contra su API."""
+
         client_id = os.getenv("PAYPAL_CLIENT_ID", "").strip()
         client_secret = os.getenv("PAYPAL_CLIENT_SECRET", "").strip()
         base_url = os.getenv("PAYPAL_BASE_URL", "https://api-m.sandbox.paypal.com").strip()
@@ -221,6 +249,8 @@ class PaymentController:
 
     @staticmethod
     def _paypal_request(*, method: str, path: str, access_token: str, payload: dict) -> dict:
+        """Ejecuta una peticion autenticada a la API REST de PayPal."""
+
         base_url = os.getenv("PAYPAL_BASE_URL", "https://api-m.sandbox.paypal.com").strip()
         data = json.dumps(payload).encode("utf-8")
         request = Request(
@@ -244,10 +274,14 @@ class PaymentController:
 
     @staticmethod
     def _ssl_context():
+        """Construye el contexto SSL con el certificado raiz actualizado."""
+
         return ssl.create_default_context(cafile=certifi.where())
 
     @staticmethod
     def _extract_approve_url(payload: dict) -> str | None:
+        """Extrae el enlace de aprobacion de la respuesta HATEOAS de PayPal."""
+
         for link in payload.get("links", []):
             if link.get("rel") == "approve":
                 return link.get("href")
@@ -255,6 +289,8 @@ class PaymentController:
 
     @staticmethod
     def _build_paypal_approve_url(reference: str) -> str:
+        """Construye una URL de checkout de respaldo a partir del token de PayPal."""
+
         base_url = os.getenv("PAYPAL_BASE_URL", "https://api-m.sandbox.paypal.com").strip().lower()
         if "sandbox" in base_url:
             return f"https://www.sandbox.paypal.com/checkoutnow?token={reference}"

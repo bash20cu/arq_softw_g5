@@ -1,3 +1,9 @@
+"""Composition root del API REST version 1.
+
+Este archivo no contiene logica de negocio; solo crea el blueprint principal
+y registra los modulos de rutas especializados por contexto.
+"""
+
 from flask import Blueprint
 
 from app.routes.api_auth_routes import register_auth_routes

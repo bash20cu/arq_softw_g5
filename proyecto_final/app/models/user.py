@@ -1,3 +1,5 @@
+"""Modelos relacionados con personas, usuarios, clientes y facturas."""
+
 from datetime import datetime
 
 from app.database import db
@@ -5,6 +7,8 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 
 def _serialize_datetime(value):
+    """Convierte fechas a texto ISO o conserva el valor textual recibido del driver."""
+
     # SQL Server can occasionally materialize DATETIME values as strings depending
     # on driver behavior, so user-facing payloads normalize both representations.
     if value is None:
@@ -15,6 +19,8 @@ def _serialize_datetime(value):
 
 
 class Persona(db.Model):
+    """Entidad base de persona fisica utilizada por usuarios y clientes."""
+
     __tablename__ = "persona"
 
     cedula = db.Column(db.String(20), primary_key=True)
@@ -28,10 +34,14 @@ class Persona(db.Model):
     distrito = db.relationship("Distrito", lazy="joined")
 
     def save(self) -> None:
+        """Guarda la persona actual en base de datos."""
+
         db.session.add(self)
         db.session.commit()
 
     def to_dict(self) -> dict:
+        """Serializa la persona para respuestas JSON."""
+
         return {
             "cedula": self.cedula,
             "nombre": self.nombre,
@@ -44,6 +54,8 @@ class Persona(db.Model):
 
 
 class User(db.Model):
+    """Usuario autenticable del sistema."""
+
     __tablename__ = "usuario"
 
     id_usuario = db.Column(db.Integer, primary_key=True)
@@ -65,10 +77,14 @@ class User(db.Model):
         return check_password_hash(self.password_hash, password)
 
     def save(self) -> None:
+        """Guarda el usuario actual en base de datos."""
+
         db.session.add(self)
         db.session.commit()
 
     def to_dict(self) -> dict:
+        """Serializa el usuario con datos de rol y persona enlazada."""
+
         return {
             "id_usuario": self.id_usuario,
             "cedula_persona": self.cedula_persona,
@@ -83,6 +99,8 @@ class User(db.Model):
 
 
 class Cliente(db.Model):
+    """Cliente comercial que puede o no estar vinculado a una Persona."""
+
     __tablename__ = "cliente"
 
     TIPOS_CLIENTE = {"Persona", "Empresa"}
@@ -104,15 +122,21 @@ class Cliente(db.Model):
 
     @property
     def nombre_completo(self) -> str:
+        """Devuelve el nombre a mostrar segun el tipo de cliente."""
+
         if self.tipo_cliente == "Empresa":
             return self.nombre
         return f"{self.nombre} {self.apellido}".strip()
 
     def save(self):
+        """Guarda el cliente actual en base de datos."""
+
         db.session.add(self)
         db.session.commit()
 
     def to_dict(self):
+        """Serializa el cliente para consumo del API."""
+
         return {
             "id_cliente": self.id_cliente,
             "cedula_persona": self.cedula_persona,
@@ -130,6 +154,8 @@ class Cliente(db.Model):
 
 
 class Factura(db.Model):
+    """Factura emitida por el sistema."""
+
     __tablename__ = "factura"
 
     id_factura = db.Column(db.Integer, primary_key=True)
@@ -138,10 +164,14 @@ class Factura(db.Model):
     fecha_emision = db.Column(db.DateTime, nullable=False)
 
     def save(self):
+        """Guarda la factura actual en base de datos."""
+
         db.session.add(self)
         db.session.commit()
 
     def to_dict(self):
+        """Serializa la factura para respuestas JSON."""
+
         return {
             "id_factura": self.id_factura,
             "numero_factura": self.numero_factura,

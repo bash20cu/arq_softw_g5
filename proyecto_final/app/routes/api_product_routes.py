@@ -1,3 +1,5 @@
+"""Rutas CRUD de productos."""
+
 from flask import request
 from sqlalchemy.exc import IntegrityError
 
@@ -13,11 +15,15 @@ def register_product_routes(bp):
 
     @bp.get("/productos")
     def list_products():
+        """Lista los productos visibles del catalogo."""
+
         products = ProductController.list_products()
         return [product.to_dict() for product in products], 200
 
     @bp.get("/productos/<int:product_id>")
     def get_product(product_id: int):
+        """Obtiene un producto especifico por id."""
+
         product = ProductController.get_product_by_id(product_id)
         if product is None:
             return error_response("producto no encontrado", 404)
@@ -26,6 +32,8 @@ def register_product_routes(bp):
     @bp.post("/productos")
     @roles_required(ROLE_ADMIN, ROLE_EMPLEADO)
     def create_product():
+        """Crea un producto nuevo usando el payload recibido por JSON."""
+
         payload = request.get_json(silent=True) or {}
         try:
             product = ProductController.create_product(
@@ -51,6 +59,8 @@ def register_product_routes(bp):
     @bp.put("/productos/<int:product_id>")
     @roles_required(ROLE_ADMIN, ROLE_EMPLEADO)
     def update_product(product_id: int):
+        """Actualiza un producto existente."""
+
         product = ProductController.get_product_by_id(product_id)
         if product is None:
             return error_response("producto no encontrado", 404)
@@ -87,6 +97,8 @@ def register_product_routes(bp):
     @bp.delete("/productos/<int:product_id>")
     @roles_required(ROLE_ADMIN)
     def delete_product(product_id: int):
+        """Elimina un producto del catalogo."""
+
         product = ProductController.get_product_by_id(product_id)
         if product is None:
             return error_response("producto no encontrado", 404)

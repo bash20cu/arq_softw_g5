@@ -1,3 +1,9 @@
+"""Controlador de usuarios del sistema.
+
+Se encarga del CRUD de usuarios y de la verificacion de credenciales usando
+hashes seguros de contrasena.
+"""
+
 from app.models.user import Persona, User
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -5,6 +11,8 @@ from werkzeug.security import check_password_hash, generate_password_hash
 class UserController:
     @staticmethod
     def _ensure_password_hash(password_value: str) -> str:
+        """Convierte una contrasena plana en hash o acepta un hash ya generado."""
+
         value = (password_value or "").strip()
         if not value:
             raise ValueError("password no puede estar vacio")
@@ -15,10 +23,14 @@ class UserController:
 
     @staticmethod
     def list_users() -> list[User]:
+        """Lista todos los usuarios registrados."""
+
         return User.query.order_by(User.id_usuario.asc()).all()
 
     @staticmethod
     def list_personas_for_user(current_cedula: str | None = None) -> list[Persona]:
+        """Devuelve personas disponibles para crear o reasignar usuarios."""
+
         used_cedulas = {item.cedula_persona for item in User.query.all()}
         query = Persona.query
         if current_cedula:
@@ -35,6 +47,8 @@ class UserController:
         id_rol: int,
         activo: bool = True,
     ) -> User:
+        """Crea un usuario validando primero la Persona asociada."""
+
         if Persona.query.filter_by(cedula=cedula_persona).first() is None:
             raise ValueError("cedula_persona no existe en Persona")
         user = User(
@@ -49,18 +63,26 @@ class UserController:
 
     @staticmethod
     def get_user_by_username(username: str) -> User | None:
+        """Busca un usuario por nombre de acceso."""
+
         return User.query.filter_by(username=username).first()
 
     @staticmethod
     def get_user_by_cedula(cedula_persona: str) -> User | None:
+        """Busca un usuario por la cedula de la persona vinculada."""
+
         return User.query.filter_by(cedula_persona=cedula_persona).first()
 
     @staticmethod
     def get_user_by_id(user_id: int) -> User | None:
+        """Busca un usuario por su id interno."""
+
         return User.query.filter_by(id_usuario=user_id).first()
 
     @staticmethod
     def update_user(user: User, **fields) -> User:
+        """Actualiza un usuario y rehace el hash si cambia la contrasena."""
+
         if "cedula_persona" in fields:
             if Persona.query.filter_by(cedula=fields["cedula_persona"]).first() is None:
                 raise ValueError("cedula_persona no existe en Persona")
@@ -81,6 +103,8 @@ class UserController:
 
     @staticmethod
     def delete_user(user: User) -> None:
+        """Elimina un usuario del sistema."""
+
         from app.database import db
 
         db.session.delete(user)
@@ -88,6 +112,8 @@ class UserController:
 
     @staticmethod
     def verify_credentials(username: str, plain_password: str) -> User | None:
+        """Valida credenciales contra el hash almacenado en base de datos."""
+
         user = User.query.filter_by(username=username, activo=True).first()
         if user is None:
             return None

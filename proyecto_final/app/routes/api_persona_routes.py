@@ -1,3 +1,5 @@
+"""Rutas CRUD de personas."""
+
 from flask import request
 from sqlalchemy.exc import IntegrityError
 
@@ -14,12 +16,16 @@ def register_persona_routes(bp):
     @bp.get("/personas")
     @roles_required(ROLE_ADMIN, ROLE_EMPLEADO)
     def list_personas():
+        """Lista las personas registradas en el sistema."""
+
         personas = PersonaController.list_personas()
         return [persona.to_dict() for persona in personas], 200
 
     @bp.get("/personas/<string:cedula>")
     @roles_required(ROLE_ADMIN, ROLE_EMPLEADO)
     def get_persona(cedula: str):
+        """Obtiene una persona por su cedula."""
+
         persona = PersonaController.get_persona_by_cedula(cedula)
         if persona is None:
             return error_response("persona no encontrada", 404)
@@ -28,6 +34,8 @@ def register_persona_routes(bp):
     @bp.post("/personas")
     @roles_required(ROLE_ADMIN, ROLE_EMPLEADO)
     def create_persona():
+        """Crea una nueva persona a partir del payload JSON recibido."""
+
         payload = request.get_json(silent=True) or {}
         try:
             persona = PersonaController.create_persona(
@@ -50,6 +58,8 @@ def register_persona_routes(bp):
     @bp.put("/personas/<string:cedula>")
     @roles_required(ROLE_ADMIN, ROLE_EMPLEADO)
     def update_persona(cedula: str):
+        """Actualiza una persona existente."""
+
         persona = PersonaController.get_persona_by_cedula(cedula)
         if persona is None:
             return error_response("persona no encontrada", 404)
@@ -74,6 +84,8 @@ def register_persona_routes(bp):
     @bp.delete("/personas/<string:cedula>")
     @roles_required(ROLE_ADMIN)
     def delete_persona(cedula: str):
+        """Elimina una persona si no esta siendo referenciada por otras tablas."""
+
         persona = PersonaController.get_persona_by_cedula(cedula)
         if persona is None:
             return error_response("persona no encontrada", 404)

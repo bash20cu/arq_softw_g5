@@ -1,3 +1,5 @@
+"""Rutas HTTP para el manejo de ordenes de compra."""
+
 from flask import request, session
 from sqlalchemy.exc import IntegrityError
 
@@ -20,12 +22,16 @@ def register_order_routes(bp):
     @bp.get("/ordenes")
     @roles_required(ROLE_ADMIN, ROLE_EMPLEADO)
     def list_ordenes():
+        """Lista todas las ordenes visibles para personal administrativo."""
+
         ordenes = OrderController.list_orders()
         return [serialize_order(orden, include_details=False) for orden in ordenes], 200
 
     @bp.get("/ordenes/<int:order_id>")
     @login_required
     def get_order(order_id: int):
+        """Obtiene una orden especifica con todos sus detalles."""
+
         order = OrderController.get_order_by_id(order_id)
         if order is None:
             return error_response("orden no encontrada", 404)
@@ -38,6 +44,8 @@ def register_order_routes(bp):
     @bp.get("/ordenes/<int:order_id>/estado")
     @login_required
     def get_order_status(order_id: int):
+        """Obtiene solo el estado resumido de una orden."""
+
         order = OrderController.get_order_by_id(order_id)
         if order is None:
             return error_response("orden no encontrada", 404)
@@ -50,6 +58,8 @@ def register_order_routes(bp):
     @bp.post("/ordenes")
     @roles_required(ROLE_ADMIN, ROLE_EMPLEADO)
     def create_order():
+        """Crea una orden nueva y asocia al usuario autenticado que la registra."""
+
         payload = request.get_json(silent=True) or {}
 
         try:
@@ -71,6 +81,8 @@ def register_order_routes(bp):
     @bp.put("/ordenes/<int:order_id>")
     @roles_required(ROLE_ADMIN, ROLE_EMPLEADO)
     def update_order(order_id: int):
+        """Actualiza una orden o la mueve a otro estado permitido."""
+
         order = OrderController.get_order_by_id(order_id)
         if order is None:
             return error_response("orden no encontrada", 404)
@@ -95,6 +107,8 @@ def register_order_routes(bp):
     @bp.post("/ordenes/<int:order_id>/cancelar")
     @roles_required(ROLE_ADMIN, ROLE_EMPLEADO)
     def cancel_order(order_id: int):
+        """Cancela una orden usando la logica de negocio del controlador."""
+
         order = OrderController.get_order_by_id(order_id)
         if order is None:
             return error_response("orden no encontrada", 404)
