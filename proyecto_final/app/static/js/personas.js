@@ -4,37 +4,44 @@ let editingCedula = null;
 
 /* ── Tabla ───────────────────────────────────────────────────── */
 async function loadPersonas() {
-  const data = await ppFetch('/api/v1/personas');
   const body = document.getElementById('personasTable');
-  body.innerHTML = '';
+  body.innerHTML = '<tr><td colspan="6" class="table-empty">Cargando...</td></tr>';
 
-  if (!data || !data.length) {
-    body.innerHTML = '<tr><td colspan="6" class="table-empty">Sin personas registradas</td></tr>';
-    return;
+  try {
+    const data = await ppFetch('/api/v1/personas');
+    body.innerHTML = '';
+
+    if (!data || !data.length) {
+      body.innerHTML = '<tr><td colspan="6" class="table-empty">Sin personas registradas</td></tr>';
+      return;
+    }
+
+    data.forEach(p => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="text-mono text-small">${p.cedula}</td>
+        <td><strong>${p.nombre} ${p.apellido}</strong></td>
+        <td class="text-small">${p.email}</td>
+        <td class="text-small">${p.telefono || '—'}</td>
+        <td class="text-small text-muted">${ppDate(p.fecha_registro)}</td>
+        <td>
+          <div style="display:flex;gap:6px;">
+            <button class="btn-pp btn-pp-ghost btn-pp-sm"
+                    data-action="edit"
+                    data-persona='${JSON.stringify(p)}'>Editar</button>
+            <button class="btn-pp btn-pp-danger btn-pp-sm"
+                    data-action="delete"
+                    data-cedula="${p.cedula}"
+                    data-nombre="${p.nombre} ${p.apellido}">Eliminar</button>
+          </div>
+        </td>
+      `;
+      body.appendChild(tr);
+    });
+  } catch (error) {
+    body.innerHTML = `<tr><td colspan="6" class="table-empty">No fue posible cargar personas: ${error.message}</td></tr>`;
+    ppAlert('#personaPageAlert', 'danger', error.message || 'No fue posible cargar personas');
   }
-
-  data.forEach(p => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td class="text-mono text-small">${p.cedula}</td>
-      <td><strong>${p.nombre} ${p.apellido}</strong></td>
-      <td class="text-small">${p.email}</td>
-      <td class="text-small">${p.telefono || '—'}</td>
-      <td class="text-small text-muted">${ppDate(p.fecha_registro)}</td>
-      <td>
-        <div style="display:flex;gap:6px;">
-          <button class="btn-pp btn-pp-ghost btn-pp-sm"
-                  data-action="edit"
-                  data-persona='${JSON.stringify(p)}'>Editar</button>
-          <button class="btn-pp btn-pp-danger btn-pp-sm"
-                  data-action="delete"
-                  data-cedula="${p.cedula}"
-                  data-nombre="${p.nombre} ${p.apellido}">Eliminar</button>
-        </div>
-      </td>
-    `;
-    body.appendChild(tr);
-  });
 }
 
 /* ── Modal: abrir nuevo ──────────────────────────────────────── */

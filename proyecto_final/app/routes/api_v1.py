@@ -5,6 +5,7 @@ from app.routes.api_catalog_routes import register_catalog_routes
 from app.routes.api_client_routes import register_client_routes
 from app.routes.api_order_routes import register_order_routes
 from app.routes.api_payment_routes import register_payment_routes
+from app.routes.api_persona_routes import register_persona_routes
 from app.routes.api_product_routes import register_product_routes
 from app.routes.api_user_routes import register_user_routes
 
@@ -16,6 +17,7 @@ api_v1_bp = Blueprint("api_v1", __name__, url_prefix="/api/v1")
 
 
 register_catalog_routes(api_v1_bp)
+register_persona_routes(api_v1_bp)
 register_product_routes(api_v1_bp)
 register_client_routes(api_v1_bp)
 register_user_routes(api_v1_bp)
