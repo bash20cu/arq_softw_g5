@@ -1,37 +1,67 @@
 {% extends "base.html" %}
-
 {% block title %}Panel | ProPat{% endblock %}
 
+{% block head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/principal.css') }}">
+{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+
+<div class="pp-page-header">
   <div>
-    <p class="text-muted mb-1">Panel rustico inicial</p>
-    <h1 class="h4 mb-0">Administracion basica</h1>
+    <p class="pp-subtitle">Panel de administración</p>
+    <h1>Bienvenido, {{ session['user']['username'] }} 👋</h1>
+    <p>Selecciona un módulo para comenzar.</p>
   </div>
-  <a class="btn btn-outline-secondary" href="/logout">Cerrar sesion</a>
 </div>
 
-<div class="row g-3">
-  <div class="col-md-4">
-    <div class="bg-white border rounded p-3">
-      <h2 class="h6">Productos</h2>
-      <p class="small text-muted">Catalogo y alta basica.</p>
-      <a class="btn btn-sm btn-dark" href="/productos">Ir a productos</a>
+<div class="dash-grid">
+
+  <a href="/productos" class="dash-link">
+    <div class="pp-card dash-card dash-card--yellow">
+      <span class="dash-icon">🐥</span>
+      <div class="pp-card-title">Productos</div>
+      <div class="pp-card-subtitle">Catálogo, alta y edición de artículos</div>
+      <span class="btn-pp btn-pp-ghost btn-pp-sm">Ir al módulo →</span>
     </div>
-  </div>
-  <div class="col-md-4">
-    <div class="bg-white border rounded p-3">
-      <h2 class="h6">Ordenes</h2>
-      <p class="small text-muted">Crear y revisar pedidos.</p>
-      <a class="btn btn-sm btn-dark" href="/ordenes">Ir a ordenes</a>
+  </a>
+
+  <a href="/ordenes" class="dash-link">
+    <div class="pp-card dash-card dash-card--ink">
+      <span class="dash-icon">📦</span>
+      <div class="pp-card-title">Órdenes</div>
+      <div class="pp-card-subtitle">Crear, revisar y gestionar pedidos</div>
+      <span class="btn-pp btn-pp-ghost btn-pp-sm">Ir al módulo →</span>
     </div>
-  </div>
-  <div class="col-md-4">
-    <div class="bg-white border rounded p-3">
-      <h2 class="h6">Consulta pedido</h2>
-      <p class="small text-muted">Vista publica simple.</p>
-      <a class="btn btn-sm btn-dark" href="/consulta-pedido">Ir a consulta</a>
+  </a>
+
+  <a href="/clientes" class="dash-link">
+    <div class="pp-card dash-card dash-card--green">
+      <span class="dash-icon">👥</span>
+      <div class="pp-card-title">Clientes</div>
+      <div class="pp-card-subtitle">Administración completa de clientes</div>
+      <span class="btn-pp btn-pp-ghost btn-pp-sm">Ir al módulo →</span>
     </div>
-  </div>
+  </a>
+
+  <a href="/personas" class="dash-link">
+    <div class="pp-card dash-card dash-card--blue">
+      <span class="dash-icon">🪪</span>
+      <div class="pp-card-title">Personas</div>
+      <div class="pp-card-subtitle">Registro base de personas del sistema</div>
+      <span class="btn-pp btn-pp-ghost btn-pp-sm">Ir al módulo →</span>
+    </div>
+  </a>
+
+  <a href="/consulta-pedido" class="dash-link">
+    <div class="pp-card dash-card dash-card--orange">
+      <span class="dash-icon">🔍</span>
+      <div class="pp-card-title">Consultar pedido</div>
+      <div class="pp-card-subtitle">Vista pública de estado de órdenes</div>
+      <span class="btn-pp btn-pp-ghost btn-pp-sm">Ir al módulo →</span>
+    </div>
+  </a>
+
 </div>
+
 {% endblock %}

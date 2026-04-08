@@ -62,3 +62,15 @@ def paypal_cancel_page():
 def logout_page():
     session.clear()
     return redirect(url_for("frontend.login_page"))
+
+@frontend_bp.get("/clientes")
+def clients_page():
+    if session.get("user") is None:
+        return redirect(url_for("frontend.login_page"))
+    return render_template("clientes.html")
+
+@frontend_bp.get("/personas")
+def personas_page():
+    if session.get("user") is None:
+        return redirect(url_for("frontend.login_page"))
+    return render_template("personas.html")

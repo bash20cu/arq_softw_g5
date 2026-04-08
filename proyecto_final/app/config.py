@@ -2,6 +2,7 @@ import os
 from urllib.parse import quote_plus
 
 from dotenv import load_dotenv
+import pyodbc
 
 load_dotenv()
 
@@ -20,6 +21,18 @@ def _get_bool_env(name: str, default: bool = False) -> bool:
     return value.strip().lower() in {"1", "true", "si", "yes", "on"}
 
 
+def _resolve_sql_driver(preferred_driver: str) -> str:
+    """Pick the configured SQL Server driver when installed, otherwise fall back safely."""
+
+    requested = preferred_driver.strip()
+    installed = {driver.strip() for driver in pyodbc.drivers()}
+    if requested in installed:
+        return requested
+    if "SQL Server" in installed:
+        return "SQL Server"
+    return requested
+
+
 class Config:
     SECRET_KEY = _require_env("SECRET_KEY")
     DB_HOST = _require_env("MSSQL_HOST")
@@ -27,7 +40,7 @@ class Config:
     DB_NAME = _require_env("MSSQL_DB")
     DB_USER = _require_env("MSSQL_USER")
     DB_PASSWORD = _require_env("MSSQL_PASSWORD")
-    DB_DRIVER = _require_env("MSSQL_DRIVER")
+    DB_DRIVER = _resolve_sql_driver(_require_env("MSSQL_DRIVER"))
     # Keep database bootstrap explicit so production/runtime startup does not require
     # database creation permissions.
     BOOTSTRAP_DATABASE = _get_bool_env("BOOTSTRAP_DATABASE", default=False)

@@ -1,0 +1,44 @@
+/* ProPat — productos.css */
+
+.table-scroll { overflow-x: auto; }
+
+.table-empty {
+  text-align: center;
+  color: var(--ink-muted);
+  padding: 32px;
+}
+
+/* Checkbox "Activo" dentro del modal */
+.activo-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 22px;
+}
+
+.activo-check input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--ink);
+  cursor: pointer;
+}
+
+.activo-check label {
+  font-size: .85rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin: 0;
+}
+
+/* Botones al pie del modal */
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+/* Modal un poco más ancho para el formulario de producto */
+#modalProducto .pp-modal-box {
+  max-width: 600px;
+}
