@@ -1,1 +1,1 @@
-# Controllers package for proyecto_final.
+"""Paquete que agrupa los controladores de negocio del proyecto final."""

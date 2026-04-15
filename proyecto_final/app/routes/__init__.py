@@ -1,1 +1,1 @@
-# Routes package for proyecto_final.
+"""Paquete que agrupa las rutas HTTP y blueprints de la aplicacion."""

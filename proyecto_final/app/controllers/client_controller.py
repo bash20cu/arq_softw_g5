@@ -1,22 +1,36 @@
+"""Controlador de clientes.
+
+Encapsula las reglas para crear, actualizar y vincular clientes con personas
+existentes del sistema.
+"""
+
 from app.controllers.persona_controller import PersonaController
 from app.database import db
 from app.models.user import Cliente, Persona
 
 
 class ClientController:
+    """Gestiona la logica de negocio de clientes."""
+
     ALLOWED_STATES = {"Activo", "Inactivo", "VIP", "Moroso"}
     ALLOWED_TYPES = {"Persona", "Empresa"}
 
     @staticmethod
     def list_clients() -> list[Cliente]:
+        """Devuelve todos los clientes ordenados alfabeticamente."""
+
         return Cliente.query.order_by(Cliente.nombre.asc(), Cliente.apellido.asc()).all()
 
     @staticmethod
     def get_client_by_id(client_id: int) -> Cliente | None:
+        """Busca un cliente por su identificador interno."""
+
         return Cliente.query.filter_by(id_cliente=client_id).first()
 
     @staticmethod
     def get_client_by_cedula(cedula_persona: str) -> Cliente | None:
+        """Busca un cliente por la cedula de la persona vinculada."""
+
         return Cliente.query.filter_by(cedula_persona=cedula_persona).first()
 
     @staticmethod
@@ -33,6 +47,8 @@ class ClientController:
         puntos_lealtad=0,
         estado_cliente: str = "Activo",
     ) -> Cliente:
+        """Crea un cliente nuevo de forma manual o enlazado a Persona."""
+
         persona = ClientController._validate_persona_link(cedula_persona)
         normalized = ClientController._normalize_base_fields(
             tipo_cliente=tipo_cliente,
@@ -62,6 +78,8 @@ class ClientController:
         puntos_lealtad=0,
         estado_cliente: str = "Activo",
     ) -> Cliente:
+        """Crea un cliente copiando la informacion principal desde Persona."""
+
         persona = ClientController._validate_persona_link(cedula_persona)
         if persona is None:
             raise ValueError("cedula_persona no existe en Persona")
@@ -85,6 +103,8 @@ class ClientController:
 
     @staticmethod
     def update_client(client: Cliente, **fields) -> Cliente:
+        """Actualiza los campos del cliente respetando sus reglas de consistencia."""
+
         if "cedula_persona" in fields:
             persona = ClientController._validate_persona_link(fields["cedula_persona"])
             ClientController._validate_unique_link(
@@ -127,6 +147,8 @@ class ClientController:
 
     @staticmethod
     def delete_client(client: Cliente) -> None:
+        """Elimina definitivamente un cliente."""
+
         db.session.delete(client)
         db.session.commit()
 
@@ -143,6 +165,8 @@ class ClientController:
         puntos_lealtad,
         estado_cliente: str,
     ) -> dict:
+        """Normaliza y valida los campos comunes antes de persistir el cliente."""
+
         parsed_type = ClientController._validate_type(tipo_cliente)
         return {
             "tipo_cliente": parsed_type,
@@ -158,6 +182,8 @@ class ClientController:
 
     @staticmethod
     def _merge_with_persona(fields: dict, persona: Persona) -> dict:
+        """Prioriza los datos oficiales de Persona cuando existe un enlace."""
+
         merged = dict(fields)
         merged["tipo_cliente"] = "Persona"
         merged["nombre"] = persona.nombre
@@ -169,6 +195,8 @@ class ClientController:
 
     @staticmethod
     def _validate_persona_link(cedula_persona: str | None) -> Persona | None:
+        """Valida que la cedula recibida exista en la tabla Persona."""
+
         parsed = (cedula_persona or "").strip()
         if not parsed:
             return None
@@ -183,6 +211,8 @@ class ClientController:
         *,
         current_client_id: int | None = None,
     ) -> None:
+        """Impide asociar una misma Persona a mas de un cliente."""
+
         parsed = (cedula_persona or "").strip()
         if not parsed:
             return
@@ -194,6 +224,8 @@ class ClientController:
 
     @staticmethod
     def _require_text(value: str, field_name: str) -> str:
+        """Valida campos de texto obligatorios."""
+
         parsed = (value or "").strip()
         if not parsed:
             raise ValueError(f"{field_name} es obligatorio")
@@ -201,6 +233,8 @@ class ClientController:
 
     @staticmethod
     def _validate_type(value: str) -> str:
+        """Valida que el tipo de cliente sea permitido por el negocio."""
+
         parsed = (value or "Persona").strip()
         if parsed not in ClientController.ALLOWED_TYPES:
             raise ValueError("tipo_cliente no permitido")
@@ -208,6 +242,8 @@ class ClientController:
 
     @staticmethod
     def _normalize_last_name(value: str | None, tipo_cliente: str) -> str | None:
+        """Aplica la regla de apellido obligatorio solo para clientes persona."""
+
         parsed = (value or "").strip()
         if tipo_cliente == "Empresa":
             return parsed or None
@@ -217,6 +253,8 @@ class ClientController:
 
     @staticmethod
     def _validate_points(value) -> int:
+        """Asegura que los puntos de lealtad sean enteros y no negativos."""
+
         try:
             points = int(value)
         except (TypeError, ValueError) as exc:
@@ -227,6 +265,8 @@ class ClientController:
 
     @staticmethod
     def _validate_state(value: str) -> str:
+        """Valida el estado comercial permitido del cliente."""
+
         state = (value or "Activo").strip()
         if state not in ClientController.ALLOWED_STATES:
             raise ValueError("estado_cliente no permitido")

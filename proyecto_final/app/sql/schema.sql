@@ -5,6 +5,7 @@ BEGIN
         id_orden INT NOT NULL,
         proveedor NVARCHAR(50) NOT NULL,
         referencia_externa NVARCHAR(120) NULL,
+        approve_url NVARCHAR(500) NULL,
         monto DECIMAL(12,2) NOT NULL,
         estado NVARCHAR(30) NOT NULL DEFAULT 'Pendiente',
         fecha_pago DATETIME2 NOT NULL DEFAULT SYSDATETIME()
@@ -16,6 +17,9 @@ IF COL_LENGTH('dbo.pago', 'proveedor') IS NULL
 
 IF COL_LENGTH('dbo.pago', 'referencia_externa') IS NULL
     ALTER TABLE dbo.pago ADD referencia_externa NVARCHAR(120) NULL
+
+IF COL_LENGTH('dbo.pago', 'approve_url') IS NULL
+    ALTER TABLE dbo.pago ADD approve_url NVARCHAR(500) NULL
 
 IF COL_LENGTH('dbo.pago', 'monto') IS NULL
     ALTER TABLE dbo.pago ADD monto DECIMAL(12,2) NOT NULL DEFAULT 0
@@ -155,6 +159,9 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'uq_cliente_cedula_persona
 
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'uq_producto_nombre' AND object_id = OBJECT_ID('dbo.producto'))
     CREATE UNIQUE INDEX uq_producto_nombre ON dbo.producto(nombre)
+
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'uq_pago_referencia_externa' AND object_id = OBJECT_ID('dbo.pago'))
+    CREATE UNIQUE INDEX uq_pago_referencia_externa ON dbo.pago(referencia_externa) WHERE referencia_externa IS NOT NULL
 
 IF NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'fk_canton_provincia')
     ALTER TABLE dbo.canton ADD CONSTRAINT fk_canton_provincia FOREIGN KEY (id_provincia) REFERENCES dbo.provincia(id_provincia)

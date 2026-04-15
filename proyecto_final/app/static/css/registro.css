@@ -1,0 +1,41 @@
+/* ProPat — registro.css */
+
+.registro-wrapper {
+  max-width: 640px;
+  margin: 32px auto;
+}
+
+.registro-link {
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+.registro-link:hover { text-decoration: underline; }
+
+.section-label {
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: 14px;
+}
+
+.section-optional {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+.registro-submit {
+  width: 100%;
+  justify-content: center;
+  padding: 12px;
+  margin-top: 8px;
+}
+
+@media (max-width: 576px) {
+  .grid-3 { grid-template-columns: 1fr !important; }
+}

@@ -1,7 +1,11 @@
+"""Modelo de productos del catalogo comercial."""
+
 from app.database import db
 
 
 class Product(db.Model):
+    """Producto vendible del sistema."""
+
     __tablename__ = "producto"
 
     id_producto = db.Column(db.Integer, primary_key=True)
@@ -19,10 +23,14 @@ class Product(db.Model):
     detalles = db.relationship("OrderDetail", back_populates="producto", lazy="selectin")
 
     def save(self) -> None:
+        """Guarda el producto actual en base de datos."""
+
         db.session.add(self)
         db.session.commit()
 
     def to_dict(self) -> dict:
+        """Serializa el producto para respuestas JSON."""
+
         return {
             "id_producto": self.id_producto,
             "nombre": self.nombre,
