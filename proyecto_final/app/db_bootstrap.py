@@ -7,20 +7,9 @@ el seed cuando BOOTSTRAP_DATABASE esta habilitado.
 from pathlib import Path
 from urllib.parse import quote_plus
 
-import pyodbc
 from sqlalchemy import create_engine, text
 
-
-def _resolve_sql_driver(preferred_driver: str) -> str:
-    """Keep bootstrap aligned with the app runtime when the configured ODBC driver is missing."""
-
-    requested = preferred_driver.strip()
-    installed = {driver.strip() for driver in pyodbc.drivers()}
-    if requested in installed:
-        return requested
-    if "SQL Server" in installed:
-        return "SQL Server"
-    return requested
+from app.odbc import build_sql_server_query, resolve_sql_driver
 
 
 def _build_database_uri(
@@ -34,19 +23,13 @@ def _build_database_uri(
 ) -> str:
     """Construye la cadena de conexion SQLAlchemy para SQL Server."""
 
-    driver = _resolve_sql_driver(driver)
-
-    # Match the same driver compatibility rule used by the Flask app config so
-    # bootstrap works with both the legacy "SQL Server" driver and Driver 18.
-    query_params = [f"driver={quote_plus(driver)}"]
-    if driver.strip().lower() != "sql server":
-        query_params.append("TrustServerCertificate=yes")
+    driver = resolve_sql_driver(driver, strict=True)
 
     return (
         "mssql+pyodbc://"
         f"{quote_plus(user)}:{quote_plus(password)}@"
         f"{host}:{port}/{quote_plus(database)}"
-        f"?{'&'.join(query_params)}"
+        f"?{build_sql_server_query(driver)}"
     )
 
 

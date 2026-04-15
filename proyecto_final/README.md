@@ -10,6 +10,7 @@ Configura las variables definidas en `.env.example`.
 
 - `BOOTSTRAP_DATABASE=false` por defecto para evitar que la app intente crear o sembrar la base de datos en cada arranque.
 - Usa `BOOTSTRAP_DATABASE=true` solo en entornos controlados de desarrollo o inicializacion.
+- En Linux, `MSSQL_DRIVER` debe coincidir con un driver ODBC instalado, por ejemplo `ODBC Driver 18 for SQL Server` o `FreeTDS`. Si `FreeTDS` aparece en `odbcinst -q -d`, verifica que el paquete este instalado y que la libreria `libtdsodbc.so` exista.
 - `PAYPAL_CLIENT_ID` y `PAYPAL_CLIENT_SECRET` son obligatorias solo para el flujo real de PayPal.
 
 ### Seguridad
